@@ -1,0 +1,14 @@
+services:
+  application:
+    container_name: hoboio
+    image: node:lts-alpine
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./code:/home/node/code
+    working_dir: /home/node/code
+    environment:
+      - HOST=0.0.0.0
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=100
+    tty: true
