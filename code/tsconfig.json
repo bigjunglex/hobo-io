@@ -2,8 +2,8 @@
     "compilerOptions": {
         "rootDir": "./src",
         "outDir": "./dist",
-        "module": "nodenext",
-        "target": "esnext",
+        "module": "esnext",
+        "target": "es2022",
         "lib": [
             "esnext",
             "DOM",
@@ -11,22 +11,15 @@
         "types": [
             "node",
             "socket.io",
-            "express"
+            "express",
         ],
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "noUncheckedIndexedAccess": true,
-        "exactOptionalPropertyTypes": true,
         "strict": true,
-        "verbatimModuleSyntax": true,
-        "isolatedModules": true,
-        "noUncheckedSideEffectImports": true,
-        "moduleDetection": "force",
         "skipLibCheck": true,
         "allowSyntheticDefaultImports": true,
-
-        "moduleResolution": "nodenext",
+        "moduleResolution": "bundler",
     },
-    "exclude": [ "node_modules", "./src/client/**/*", "./dist/"]
+    "exclude": [ "node_modules", "./dist/"],
 }

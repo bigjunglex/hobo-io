@@ -3,7 +3,7 @@ import webpack from "webpack";
 import { type Configuration } from "webpack"; 
 import wdm from "webpack-dev-middleware";
 
-const PORT = process.env.PORT ?? 3000;
+const PORT = process.env.PORT ?? 7878;
 const app = expess();
 app.use(expess.static('public'));
 

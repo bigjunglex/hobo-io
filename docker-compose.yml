@@ -3,7 +3,7 @@ services:
     container_name: hoboio
     image: node:lts-alpine
     ports:
-      - "3000:3000"
+      - "7878:7878"
     volumes:
       - ./code:/home/node/code
     working_dir: /home/node/code
