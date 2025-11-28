@@ -19,6 +19,7 @@ type Player = {
 type Bullet = {
     id: string;
     direction: number;
+    parentID: string;
 } & Position;
 
 type Score = {
@@ -30,6 +31,17 @@ type GameState = {
     t: number;
     me: Player;
     others: Player[];
-    bullets: Bullet[];
+    bullets: SerializedEntity[];
     leaderboard: Score[];
+}
+
+type SerializedEntity = {
+    id: string;
+    x: number;
+    y: number;
+}
+
+type SerializedPlayer = SerializedPlayer & {
+    direction: number;
+    hp: number
 }
