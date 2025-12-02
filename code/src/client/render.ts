@@ -64,7 +64,7 @@ export function startRendering() {
 
 function createPlayer(player: Player) {
     const { x, y, direction, hp } = player;
-    const degrees = k.rad2deg(direction);
+    const degrees = k.rad2deg(direction) - 90;
     const obj = k.make([
         k.sprite('bean'),
         k.pos(x,y),
@@ -72,8 +72,20 @@ function createPlayer(player: Player) {
         'obj'
     ])
 
+    const gun = obj.add([
+        k.sprite('gun'),
+        k.anchor('left'),
+        k.pos(15, 10),
+        k.rotate(degrees)
+    ])
+
+    if (degrees < -90){
+        gun.flipY = true;
+        gun.pos = k.vec2(-15, 10)
+    }
+
     obj.add([
-        k.text(`${Math.floor(player.hp)}/${PLAYER_MAX_HP}`, { size: 12 }),
+        k.text(`${Math.floor(hp)}/${PLAYER_MAX_HP}`, { size: 12 }),
         k.pos(0, 32),
         k.anchor('center')
     ])
