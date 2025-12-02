@@ -9,7 +9,7 @@ setCanvasDimensions();
 window.addEventListener('resize', debounce(40, setCanvasDimensions))
 export const k = kaplay({ canvas });
 
-const { PLAYER_RADIUS, PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
+const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
 
 k.scene('arena', () => {
     k.add(createBackground())
@@ -81,7 +81,7 @@ function createPlayer(player: Player) {
 
     if (degrees < -90){
         gun.flipY = true;
-        gun.pos = k.vec2(-15, 10)
+        gun.pos = k.vec2(-15, 10);
     }
 
     obj.add([

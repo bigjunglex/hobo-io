@@ -13,4 +13,4 @@ services:
       - CHOKIDAR_INTERVAL=100
     tty: true
     user: "${USER}"
-    command: "npm run dev"
+    command: "npm run start"

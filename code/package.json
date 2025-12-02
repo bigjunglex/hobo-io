@@ -7,7 +7,7 @@
     "build-client": "webpack --config webpack.prod.js",
     "test": "jest",
     "dev": "npx tsc && NODE_ENV=development node dist/server/index.js",
-    "start": ""
+    "start": "webpack --config webpack.prod.js && npx tsc && NODE_ENV=prod node dist/server/index.js"
   },
   "keywords": [],
   "author": "",
