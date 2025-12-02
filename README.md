@@ -3,6 +3,12 @@
 
 Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about io game development
 
+### Start up: 
+```npm install```
+
+```USER=$(id -u):$(id -g) docker compose up```
+
+
 #### Built with 
 * WebSockets - [Socket.io](https://socket.io/)
 * Render - [Kaplay](https://kaplayjs.com/)
