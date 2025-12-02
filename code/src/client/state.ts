@@ -60,13 +60,13 @@ export function getCurrentState() {
     }
 };
 
-function interpolateObject<T extends Bullet | Player>(from: T, to: T, ratio: number): T {
+function interpolateObject<T extends Bullet | Player >(from: T, to: T, ratio: number): T {
     if (!to) return from;
 
     const interpolated = {} as T;
     Object.keys(from).forEach(key => {
         if (key === 'direction') {
-            interpolated[key] = interpolateDirection(from[key], to[key], ratio)
+            interpolated[key] = interpolateDirection(from[key]!, to[key]!, ratio)
         } else {
             //@ts-ignore
             interpolated[key] = from[key] + (to[key] - from[key]) * ratio;

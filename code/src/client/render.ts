@@ -1,0 +1,138 @@
+import kaplay from 'kaplay';
+import { debounce } from 'throttle-debounce';
+import { getCurrentState } from './state';
+import CONSTANTS from '../shared/constants';
+import assert from 'assert';
+
+const canvas = document.getElementById('game') as HTMLCanvasElement;
+setCanvasDimensions();
+window.addEventListener('resize', debounce(40, setCanvasDimensions))
+export const k = kaplay({ canvas });
+
+const { PLAYER_RADIUS, PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
+
+k.scene('arena', () => {
+    k.add(createBackground())
+    k.onUpdate(() => {
+        k.destroyAll('obj')
+        const { me, others, bullets } = getCurrentState();
+        
+        if (me) {
+            k.setCamPos(me.x, me.y);
+            k.add(createPlayer(me));
+            
+            for (const p of others) {
+                k.add(createPlayer(p))
+            }
+
+            for (const b of bullets) {
+                k.add(createBullet(b))
+            }
+        }
+    })
+})
+
+k.scene('entry', () => {
+    const x = k.width() / 2 - 50
+    const y = k.height() / 2 - 150
+    const dummy = k.make([
+        k.sprite('bean'),
+        k.pos(x, y),
+    ])
+
+    const bg = createBackground();
+    bg.pos = k.vec2(-200, -200)
+    k.add(bg)
+
+    dummy.add([
+        k.sprite('gun'),
+        k.pos(70, 35),
+        k.anchor('center'),
+        k.rotate(30)
+    ])
+    k.add(dummy)
+})
+
+export function stopRendering() {
+    k.go('entry');
+};
+
+export function startRendering() {
+    k.go('arena')
+};
+
+
+function createPlayer(player: Player) {
+    const { x, y, direction, hp } = player;
+    const degrees = k.rad2deg(direction);
+    const obj = k.make([
+        k.sprite('bean'),
+        k.pos(x,y),
+        k.anchor('center'),
+        'obj'
+    ])
+
+    obj.add([
+        k.text(`${Math.floor(player.hp)}/${PLAYER_MAX_HP}`, { size: 12 }),
+        k.pos(0, 32),
+        k.anchor('center')
+    ])
+
+    return obj
+}
+
+
+function createBackground() {
+    const cell = 50;
+    const lineColor = k.rgb(42, 48, 60)
+    const mainColor = k.rgb(36, 41, 51)
+
+    const bg = k.make([
+        k.rect(MAP_SIZE, MAP_SIZE),
+        k.color(mainColor),
+        k.pos(0),
+        k.outline(4, k.MAGENTA)
+    ]);
+    
+    for (let x = 0; x <= MAP_SIZE; x += cell) {
+        const width = x % (cell * 4) === 0 ? 2 : 1;
+        const opacity = x % (cell * 4) === 0 ? 0.4 : 0.2;
+        
+        bg.add([
+            k.rect(width, MAP_SIZE),
+            k.pos(x, 0),
+            k.color(lineColor),
+            k.opacity(opacity)
+        ]);
+    }
+    
+    for (let y = 0; y <= MAP_SIZE; y += cell) {
+        const height = y % (cell * 4) === 0 ? 2 : 1;
+        const opacity = y % (cell * 4) === 0 ? 0.4 : 0.2;
+        
+        bg.add([
+            k.rect(MAP_SIZE, height),
+            k.pos(0, y),
+            k.color(lineColor),
+            k.opacity(opacity)
+        ]);
+    }
+
+    return bg;
+}
+
+function createBullet(bullet: Bullet | SerializedEntity) {
+    return k.make([
+        k.circle(BULLET_RADIUS),
+        k.pos(bullet.x, bullet.y),
+        k.color(k.MAGENTA),
+        'obj'
+    ])
+}
+
+
+function setCanvasDimensions() {
+    const scaleR = Math.max(1, 800 / window.innerWidth);
+    canvas.width = scaleR * window.innerWidth;
+    canvas.height = scaleR * window.innerHeight;
+}

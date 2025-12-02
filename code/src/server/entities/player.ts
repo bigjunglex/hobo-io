@@ -1,6 +1,6 @@
-import CONSTANTS from "../../shared/constants";
-import { Bullet } from "./bullet";
-import { Entity } from "./entity";
+import CONSTANTS from "../../shared/constants.js";
+import { Bullet } from "./bullet.js";
+import { Entity } from "./entity.js";
 
 export class Player extends Entity {
     public score: number;

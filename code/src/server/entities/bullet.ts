@@ -1,5 +1,5 @@
-import CONSTANTS from "../../shared/constants";
-import { Entity } from "./entity";
+import CONSTANTS from "../../shared/constants.js";
+import { Entity } from "./entity.js";
 
 export class Bullet extends Entity {
     public parentID: string;

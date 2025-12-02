@@ -8,7 +8,7 @@ export default {
 	},
 	output: {
 		filename: '[name].[contenthash].js',
-		path: path.resolve('dist'),
+		path: path.resolve('dist-client'),
 	},
 	resolve: {
 		extensions: ['.ts', '.js'],

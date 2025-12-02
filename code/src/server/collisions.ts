@@ -1,6 +1,6 @@
-import CONSTANTS from "../shared/constants";
-import { Bullet } from "./entities/bullet";
-import { Player } from "./entities/player";
+import CONSTANTS from "../shared/constants.js";
+import { Bullet } from "./entities/bullet.js";
+import { Player } from "./entities/player.js";
 
 export function applyCollisions(players: Player[], bullets: Bullet[]): Bullet[] {
     const destroyedBullets:Bullet[] = [];

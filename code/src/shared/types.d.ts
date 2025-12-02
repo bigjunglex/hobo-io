@@ -18,8 +18,8 @@ type Player = {
 
 type Bullet = {
     id: string;
-    direction: number;
-    parentID: string;
+    direction?: number;
+    parentID?: string;
 } & Position;
 
 type Score = {

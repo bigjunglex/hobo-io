@@ -1,8 +1,8 @@
-import CONSTANTS from "../shared/constants";
-import { Player } from "./entities/player";
-import { Bullet } from "./entities/bullet";
+import CONSTANTS from "../shared/constants.js";
+import { Player } from "./entities/player.js";
+import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
-import { applyCollisions } from "./collisions";
+import { applyCollisions } from "./collisions.js";
 
 
 export class Game {
@@ -120,6 +120,5 @@ export class Game {
             .slice(0,5)
             .map( p => ({username: p.username, score: Math.round(p.score)}))
     }
-
 
 }

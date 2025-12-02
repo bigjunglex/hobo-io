@@ -1,16 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HoboClient</title>
 </head>
+
 <body>
-    <div id="bundled"></div>
     <div id="play-menu" class="hidden">
         <input type="text" id="username-input" placeholder="Username" />
         <button id="play-button">PLAY</button>
     </div>
     <canvas id="game"></canvas>
+    <div id="leaderboard" class="hidden">
+        <table>
+            <tr>
+                <th>Username</th>
+                <th>Score</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div id="disconnect-modal" class="hidden">
+        <div>
+            <h2>Disconnected from Server </h2>
+            <hr />
+            <button id="reconnect-button">RECONNECT</button>
+        </div>
+    </div>
 </body>
 </html>
+
+

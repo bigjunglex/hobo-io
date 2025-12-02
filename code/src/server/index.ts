@@ -1,4 +1,4 @@
-import expess from "express";
+import express from "express";
 import webpack from "webpack";
 import { type Configuration } from "webpack"; 
 import wdm from "webpack-dev-middleware";
@@ -8,8 +8,8 @@ import { type DisconnectReason, Server, Socket } from "socket.io";
 import { Game } from './game.js'
 
 const PORT = process.env.PORT ?? 7878;
-const app = expess();
-app.use(expess.static('public'));
+const app = express();
+app.use(express.static('public'));
 
 if (process.env.NODE_ENV === 'development') {
     // @ts-ignore
@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === 'development') {
     const compiler = webpack(config);
     app.use(wdm(compiler));
 } else {
-        
+    app.use(express.static('dist-client'));
 }
 
 const server = app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
@@ -45,6 +45,6 @@ function handleInput(this: Socket, dir: number): void {
 
 function onDisconnect(this: Socket, reason: DisconnectReason, description?: any): void {
     game.removePlayer(this);
-    console.log('[DISCONNECT]:', reason, description)
+    console.log('[DISCONNECT]:', reason, this.id)
 }
 
