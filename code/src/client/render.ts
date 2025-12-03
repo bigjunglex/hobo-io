@@ -62,7 +62,7 @@ export function startRendering() {
 };
 
 
-function createPlayer(player: Player) {
+function createPlayer(player: Player & { username?: string }) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
     const obj = k.make([
@@ -85,8 +85,21 @@ function createPlayer(player: Player) {
     }
 
     obj.add([
-        k.text(`${Math.floor(hp)}/${PLAYER_MAX_HP}`, { size: 12 }),
-        k.pos(0, 32),
+        k.text(player.username, {
+            font: 'happy',
+            size: 20
+        }),
+        k.pos(0, -40),
+        k.anchor('center')
+    ])
+
+    obj.add([
+        k.text(`${Math.floor(hp)}/${PLAYER_MAX_HP}`, {
+            size: 12,
+            font: 'happy'
+        
+        }),
+        k.pos(0, 35),
         k.anchor('center')
     ])
 

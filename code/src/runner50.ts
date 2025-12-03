@@ -1,0 +1,108 @@
+import { io, Socket } from "socket.io-client";
+import { setTimeout } from "node:timers/promises";
+import { performance } from "node:perf_hooks";
+import CONSTANTS from "./shared/constants.js";
+
+type Stats = {
+    connected: number;
+    errors: number;
+    latency: number[];
+    gamesOver: number;
+}
+
+class LoadTester {
+    url: string;
+    count:number;
+    sockets: Socket[];
+    stats: Stats;
+
+    constructor(url: string, count:number) {
+        this.url = url;
+        this.count = count;
+        this.sockets = [];
+        this.stats = {
+            connected: 0,
+            errors: 0,
+            latency: [],
+            gamesOver: 0
+        };
+    }
+
+    async connectAll() {
+        console.log(`Connecting ${this.count} players...`);
+
+        for (let i = 0; i < this.count; i++) {
+            await this.connectPlayer();
+            await setTimeout(10)
+        }
+
+        console.log('All players connected!');
+
+        this.run()
+    }
+
+    async connectPlayer() {
+        const socket = io(this.url, { reconnection: false });
+        await new Promise<void>(resolve => {
+            socket.on('connect', () => {
+                this.stats.connected++
+                resolve();
+            })
+        })
+
+        let lastUpdate = performance.now();
+
+        socket.on(CONSTANTS.MSG_TYPES.GAME_UPDATE, () => {
+            const now = performance.now()
+            const ping = now - lastUpdate;
+            lastUpdate = now;
+            this.stats.latency.push(ping)
+        });
+        socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver());
+        socket.on('disconnect', () => this.stats.errors++ )
+
+        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, crypto.randomUUID().substring(0,4))
+        this.sockets.push(socket);
+    }
+
+    getStats() {
+        const avgLatency = this.stats.latency.reduce((a, b) => a + b, 0) / this.stats.latency.length;
+
+        return {
+            connected: this.stats.connected,
+            errors: this.stats.errors,
+            avgLatency: avgLatency.toFixed(2),
+            minLatency: Math.min(...this.stats.latency).toFixed(2),
+            maxLatency: Math.max(...this.stats.latency).toFixed(2),
+            gamesOver: this.stats.gamesOver
+        };
+    }
+
+    generateInput(socket:Socket) {
+        const dir = Math.random() * Math.PI * 2;;
+        socket.emit(CONSTANTS.MSG_TYPES.INPUT, dir)
+    }
+
+    run() {
+        setInterval(() => {
+            this.sockets.forEach(s => this.generateInput(s))
+        }, 3000)
+    }
+
+    onGameOver() {
+        this.stats.gamesOver++
+    }
+}
+
+const tester = new LoadTester('ws://localhost:7878', 200);
+
+tester.connectAll().then(() => {
+    setInterval(() => {
+        const stats = tester.getStats();
+        console.log('\n <----|.. [ Stats ] ..|---->');
+        console.log('[Connected]:', stats.connected);
+        console.log('[Errored]:', stats.errors);
+        console.log('[Average Latency]:', stats.avgLatency, 'ms');
+        console.log('[Games Over]: ', stats.gamesOver)
+    }, 10000)
+});

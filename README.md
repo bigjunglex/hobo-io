@@ -4,10 +4,14 @@
 Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about io game development
 
 ### Start up: 
-```npm install```
+```cd code && npm install```
 
 ```USER=$(id -u):$(id -g) docker compose up```
 
+
+### Test:
+``` npm run test50```
+- naive test with 200 connections
 
 #### Built with 
 * WebSockets - [Socket.io](https://socket.io/)

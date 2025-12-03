@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "build-client": "webpack --config webpack.prod.js",
-    "test": "jest",
     "dev": "npx tsc && NODE_ENV=development node dist/server/index.js",
-    "start": "webpack --config webpack.prod.js && npx tsc && NODE_ENV=prod node dist/server/index.js"
+    "start": "webpack --config webpack.prod.js && npx tsc && NODE_ENV=prod node dist/server/index.js",
+    "test50": "npx tsc && node dist/runner50.js"
   },
   "keywords": [],
   "author": "",

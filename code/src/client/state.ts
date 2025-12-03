@@ -67,12 +67,15 @@ function interpolateObject<T extends Bullet | Player >(from: T, to: T, ratio: nu
     Object.keys(from).forEach(key => {
         if (key === 'direction') {
             interpolated[key] = interpolateDirection(from[key]!, to[key]!, ratio)
+        } else if (key === 'x' || key === 'y') {
+            interpolated[key] = from[key] + (to[key] - from[key]) * ratio;
         } else {
             //@ts-ignore
-            interpolated[key] = from[key] + (to[key] - from[key]) * ratio;
+            interpolated[key] = to[key]
         }
     })
-    return interpolated
+
+    return interpolated as T
 }
 
 function interpolateObjectArray<T extends Bullet | Player>(from: T[], to: T[], ratio: number): T[] {

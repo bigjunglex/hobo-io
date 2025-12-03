@@ -25,7 +25,6 @@ export class Player extends Entity {
 
     update(dt: number): Bullet|null {
         super.update(dt);
-
         this.score += dt * CONSTANTS.SCORE_PER_SECOND;
         
         this.x = Math.max(0, Math.min(CONSTANTS.MAP_SIZE, this.x));
@@ -50,6 +49,7 @@ export class Player extends Entity {
     serializeForUpdate(): SerializedPlayer {
         return {
             ...(super.serializeForUpdate()),
+            username: this.username,
             direction: this.direction,
             hp: this.hp
         }
