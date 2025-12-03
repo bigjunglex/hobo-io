@@ -15,6 +15,7 @@ class LoadTester {
     count:number;
     sockets: Socket[];
     stats: Stats;
+    sprites: string[];
 
     constructor(url: string, count:number) {
         this.url = url;
@@ -26,6 +27,8 @@ class LoadTester {
             latency: [],
             gamesOver: 0
         };
+
+        this.sprites = ['zombean', 'bean', 'ghosty', 'mark']
     }
 
     async connectAll() {
@@ -37,7 +40,6 @@ class LoadTester {
         }
 
         console.log('All players connected!');
-
         this.run()
     }
 
@@ -61,7 +63,9 @@ class LoadTester {
         socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver());
         socket.on('disconnect', () => this.stats.errors++ )
 
-        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, crypto.randomUUID().substring(0,4))
+        const spriteId = Math.floor(Math.random() * 4)
+
+        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, crypto.randomUUID().substring(0,4), this.sprites[spriteId])
         this.sockets.push(socket);
     }
 
@@ -72,8 +76,6 @@ class LoadTester {
             connected: this.stats.connected,
             errors: this.stats.errors,
             avgLatency: avgLatency.toFixed(2),
-            minLatency: Math.min(...this.stats.latency).toFixed(2),
-            maxLatency: Math.max(...this.stats.latency).toFixed(2),
             gamesOver: this.stats.gamesOver
         };
     }
@@ -94,7 +96,7 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878', 200);
+const tester = new LoadTester('ws://localhost:7878/', 200);
 
 tester.connectAll().then(() => {
     setInterval(() => {

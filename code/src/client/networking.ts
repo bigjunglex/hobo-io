@@ -26,8 +26,8 @@ export const connect = (onGameOver: GameCallback) => (
     })
 )
 
-export const play = (username: string) => {
-    socket.emit(CONSTATANTS.MSG_TYPES.JOIN_GAME, username);
+export const play = (username: string, sprite: string) => {
+    socket.emit(CONSTATANTS.MSG_TYPES.JOIN_GAME, username, sprite);
 }
 
 export const updateDirection = throttle(20, (dir:number) => {

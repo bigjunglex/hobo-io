@@ -33,24 +33,9 @@ k.scene('arena', () => {
 })
 
 k.scene('entry', () => {
-    const x = k.width() / 2 - 50
-    const y = k.height() / 2 - 150
-    const dummy = k.make([
-        k.sprite('bean'),
-        k.pos(x, y),
-    ])
-
     const bg = createBackground();
     bg.pos = k.vec2(-200, -200)
     k.add(bg)
-
-    dummy.add([
-        k.sprite('gun'),
-        k.pos(70, 35),
-        k.anchor('center'),
-        k.rotate(30)
-    ])
-    k.add(dummy)
 })
 
 export function stopRendering() {
@@ -62,11 +47,11 @@ export function startRendering() {
 };
 
 
-function createPlayer(player: Player & { username?: string }) {
+function createPlayer(player: Player & { sprite?: string }) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
     const obj = k.make([
-        k.sprite('bean'),
+        k.sprite(player.sprite!),
         k.pos(x,y),
         k.anchor('center'),
         'obj'
@@ -102,6 +87,7 @@ function createPlayer(player: Player & { username?: string }) {
         k.pos(0, 35),
         k.anchor('center')
     ])
+
 
     return obj
 }

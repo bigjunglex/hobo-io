@@ -21,12 +21,12 @@ export class Game {
         setInterval(this.update.bind(this), 1000 / 60);
     }
 
-    addPlayer( socket:Socket, username: string ) {
+    addPlayer( socket:Socket, username: string, sprite: string ) {
         this.sockets[socket.id] = socket;
 
         const x = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
         const y = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
-        this.players[socket.id] = new Player(socket.id, username, x, y);
+        this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
     }
     
     removePlayer( socket: Socket ) {

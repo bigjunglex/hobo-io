@@ -7,8 +7,9 @@ export class Player extends Entity {
     public fireCooldown: number;
     public hp: number;
     public username: string;
+    public sprite: string;
 
-    constructor(id: string, username: string, x: number, y: number) {
+    constructor(id: string, username: string, x: number, y: number, sprite: string) {
         super(
             id,
             x,
@@ -16,7 +17,8 @@ export class Player extends Entity {
             Math.random() * 2 * Math.PI,
             CONSTANTS.PLAYER_SPEED
         )
-    
+        
+        this.sprite = sprite;
         this.username = username;
         this.hp = CONSTANTS.PLAYER_MAX_HP;
         this.fireCooldown = 0;
@@ -50,6 +52,7 @@ export class Player extends Entity {
         return {
             ...(super.serializeForUpdate()),
             username: this.username,
+            sprite: this.sprite,
             direction: this.direction,
             hp: this.hp
         }

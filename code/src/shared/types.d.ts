@@ -14,6 +14,7 @@ type Player = {
     direction: number;
     id: string;
     hp: number;
+    username: string;
 } & Position;
 
 type Bullet = {

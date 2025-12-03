@@ -20,7 +20,8 @@ Promise.all([
     playMenu.classList.remove('hidden');
     usernameInput.focus();
     playButton.onclick = () => {
-        play(usernameInput.value);
+        const spriteSelect = document.querySelector('input[type="radio"]:checked') as HTMLInputElement;
+        play(usernameInput.value, spriteSelect.value);
         playMenu.classList.add('hidden');
         initState();
         startCapturingInput();
