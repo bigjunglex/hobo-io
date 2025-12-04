@@ -18,9 +18,17 @@ k.scene('arena', () => {
         const { me, others, bullets } = getCurrentState();
         
         if (me) {
-            k.setCamPos(me.x, me.y);
-            k.add(createPlayer(me));
+            const y = me.y > MAP_SIZE / 2 
+                ? Math.min(me.y, MAP_SIZE - canvas.height / 2)
+                : Math.max(me.y, canvas.height / 2);
             
+            const x = me.x > MAP_SIZE / 2 
+                ? Math.min(me.x, MAP_SIZE - canvas.width / 2)
+                : Math.max(me.x, canvas.width / 2);
+
+            k.setCamPos(x, y);
+            k.add(createPlayer(me));
+
             for (const p of others) {
                 k.add(createPlayer(p))
             }
