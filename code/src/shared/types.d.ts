@@ -28,19 +28,23 @@ type Score = {
     score: number;
 }
 
+type SerializedHazard = {
+    id: string;
+    sprite: string;
+} & Position;
+
 type GameState = {
     t: number;
     me: Player;
     others: Player[];
     bullets: SerializedEntity[];
+    hazards: SerializedHazard[];
     leaderboard: Score[];
 }
 
 type SerializedEntity = {
     id: string;
-    x: number;
-    y: number;
-}
+} & Position;
 
 type SerializedPlayer = SerializedPlayer & {
     direction: number;

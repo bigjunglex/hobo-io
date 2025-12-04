@@ -3,6 +3,7 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
+import { createWebHazzard, Hazard } from "./entities/hazard.js";
 
 
 export class Game {
@@ -11,11 +12,13 @@ export class Game {
     private bullets: Bullet[];
     private lastUpdateTime: number;
     private shouldSendUpdate: boolean;
+    private hazards: Hazard[];
 
     constructor() {
         this.sockets = {};
         this.players = {};
         this.bullets = [];
+        this.hazards = this.generateWebHazards();
         this.lastUpdateTime = Date.now();
         this.shouldSendUpdate = false;
         setInterval(this.update.bind(this), 1000 / 60);
@@ -57,10 +60,14 @@ export class Game {
             const newBullet = player.update(dt);
             if (newBullet) this.bullets.push(newBullet);
         })
-
+        /**
+         * hazard checks in apply collisions  NOT quite visible,
+         * separeta concerns mb?
+         */
         const destroyedBullets: Bullet[] = applyCollisions(
             Object.values(this.players),
-            this.bullets
+            this.bullets,
+            this.hazards
         );
 
         destroyedBullets.forEach(b => {
@@ -105,11 +112,16 @@ export class Game {
             b => b.distanceTo(player) <= CONSTANTS.MAP_SIZE / 2
         )
 
+        const nearbyHazzards = this.hazards.filter(
+            h => h.distanceTo(player) <= CONSTANTS.MAP_SIZE / 2
+        )
+
         return {
             t: Date.now(),
             me: player.serializeForUpdate(),
             others: nearbyPlayers.map(p => p.serializeForUpdate()),
             bullets: nearbyBullets.map(b => b.serializeForUpdate()),
+            hazards: nearbyHazzards.map(h => h.serializeForUpdate()),
             leaderboard
         }
     }
@@ -121,4 +133,16 @@ export class Game {
             .map( p => ({username: p.username, score: Math.round(p.score)}))
     }
 
+    generateWebHazards(): Hazard[] {
+        const hazards: Hazard[] = []
+        
+        for (let i = 0; i < 10; i++) {
+            const x = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
+            const y = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
+            const web = createWebHazzard(x, y);
+            hazards.push(web)
+        }
+    
+        return hazards
+    }
 }

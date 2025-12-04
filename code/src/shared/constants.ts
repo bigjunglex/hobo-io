@@ -17,6 +17,9 @@ const CONSTANTS = {
     BULLET_SPEED: 800,
     BULLET_DAMAGE: 10,
 
+    HAZARD_RADIUS: 30,
+    HAZARD_WEB_SPRITE: 'spider_web',
+
     SCORE_BULLET_HIT: 20,
     SCORE_PER_SECOND: 1,
     

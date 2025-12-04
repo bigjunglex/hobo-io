@@ -15,7 +15,7 @@ k.scene('arena', () => {
     k.add(createBackground())
     k.onUpdate(() => {
         k.destroyAll('obj')
-        const { me, others, bullets } = getCurrentState();
+        const { me, others, bullets, hazards} = getCurrentState();
         
         if (me) {
             const y = me.y > MAP_SIZE / 2 
@@ -31,6 +31,10 @@ k.scene('arena', () => {
 
             for (const p of others) {
                 k.add(createPlayer(p))
+            }
+
+            for (const h of hazards) {
+                k.add(createHazard(h))
             }
 
             for (const b of bullets) {
@@ -100,6 +104,13 @@ function createPlayer(player: Player & { sprite?: string }) {
     return obj
 }
 
+function createHazard(hazard: SerializedHazard) {
+    return k.make([
+        k.sprite(hazard.sprite),
+        k.pos(hazard.x, hazard.y),
+        'obj'
+    ])
+}
 
 function createBackground() {
     const cell = 50;

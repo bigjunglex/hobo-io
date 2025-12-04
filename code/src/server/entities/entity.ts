@@ -1,3 +1,5 @@
+import { Hazard } from "./hazard";
+
 export class Entity {
     public id: string;
     public x: number;
@@ -18,7 +20,7 @@ export class Entity {
         this.y -= dt * this.speed * Math.cos(this.direction);
     }
 
-    distanceTo(target: Entity) {
+    distanceTo(target: Entity | Hazard) {
         const dx = this.x - target.x;
         const dy = this.y - target.y;
         return Math.sqrt(dx * dx + dy * dy);

@@ -55,8 +55,9 @@ export function getCurrentState() {
         return {
             me: interpolateObject<Player>(baseUpdate.me, next.me, r),
             others: interpolateObjectArray<Player>(baseUpdate.others, next.others, r),
-            bullets: interpolateObjectArray<Bullet>(baseUpdate.bullets, next.bullets, r)
-        } satisfies Pick<GameState, 'me' | 'bullets' | 'others'>
+            bullets: interpolateObjectArray<Bullet>(baseUpdate.bullets, next.bullets, r),
+            hazards: baseUpdate.hazards
+        } satisfies Pick<GameState, 'me' | 'bullets' | 'others' | 'hazards'>
     }
 };
 

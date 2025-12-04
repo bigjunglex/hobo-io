@@ -9,6 +9,8 @@ export async function loadAssets() {
     promises.push(k.loadSprite('mark', 'mark.png'));
     promises.push(k.loadSprite('zombean', 'zombean.png'));
     promises.push(k.loadSprite('ghosty', 'ghosty.png'));
+    promises.push(k.loadSprite('spider_web', 'spider_web.png'));
+    
 
     return Promise.all(promises)
 }
