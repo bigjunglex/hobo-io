@@ -132,16 +132,16 @@ button:focus {
 }
 
 .sprite-card:has(input[type="radio"]:checked)::after  {
-    content: 'x';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translateY(-50%) translateX(-50%);
-    color: #dd00ff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
+    background-image: url(../../../public/check_mark-o.png);
+    background-size: 64px 64px;
+    display: inline-block;
+    width: 64px; 
+    height: 64px;
+    content:"";
 }
 
 @media screen and (max-width: 640px) {

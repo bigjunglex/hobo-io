@@ -33,6 +33,7 @@ class LoadTester {
 
     async connectAll() {
         console.log(`Connecting ${this.count} players...`);
+        this.run()
 
         for (let i = 0; i < this.count; i++) {
             await this.connectPlayer();
@@ -40,7 +41,6 @@ class LoadTester {
         }
 
         console.log('All players connected!');
-        this.run()
     }
 
     async connectPlayer() {
@@ -88,7 +88,7 @@ class LoadTester {
     run() {
         setInterval(() => {
             this.sockets.forEach(s => this.generateInput(s))
-        }, 3000)
+        }, 2000)
     }
 
     onGameOver() {
