@@ -2,12 +2,11 @@ import kaplay from 'kaplay';
 import { debounce } from 'throttle-debounce';
 import { getCurrentState } from './state';
 import CONSTANTS from '../shared/constants';
-import assert from 'assert';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 setCanvasDimensions();
 window.addEventListener('resize', debounce(40, setCanvasDimensions))
-export const k = kaplay({ canvas });
+export const k = kaplay({ canvas, debugKey: 'f3' });
 
 const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
 
@@ -66,6 +65,7 @@ function createPlayer(player: Player & { sprite?: string }) {
         k.sprite(player.sprite!),
         k.pos(x,y),
         k.anchor('center'),
+        k.z(10),
         'obj'
     ])
 
@@ -73,7 +73,7 @@ function createPlayer(player: Player & { sprite?: string }) {
         k.sprite('gun'),
         k.anchor('left'),
         k.pos(15, 10),
-        k.rotate(degrees)
+        k.rotate(degrees),
     ])
 
     if (degrees < -90){
@@ -107,7 +107,9 @@ function createPlayer(player: Player & { sprite?: string }) {
 function createHazard(hazard: SerializedHazard) {
     return k.make([
         k.sprite(hazard.sprite),
+        k.anchor('center'),
         k.pos(hazard.x, hazard.y),
+        k.z(0),
         'obj'
     ])
 }
@@ -156,6 +158,7 @@ function createBullet(bullet: Bullet | SerializedEntity) {
         k.circle(BULLET_RADIUS),
         k.pos(bullet.x, bullet.y),
         k.color(k.MAGENTA),
+        k.z(10),
         'obj'
     ])
 }

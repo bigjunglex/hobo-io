@@ -3,7 +3,7 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
-import { createWebHazzard, Hazard } from "./entities/hazard.js";
+import { createPortalHazzard, createWebHazzard, Hazard } from "./entities/hazard.js";
 
 
 export class Game {
@@ -140,6 +140,13 @@ export class Game {
             const x = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
             const y = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
             const web = createWebHazzard(x, y);
+            hazards.push(web)
+        }
+
+        for (let i = 0; i < 5; i++) {
+            const x = CONSTANTS.MAP_SIZE * (0.45 + Math.random() * 0.5);
+            const y = CONSTANTS.MAP_SIZE * (0.45 + Math.random() * 0.5);
+            const web = createPortalHazzard(x, y);
             hazards.push(web)
         }
     
