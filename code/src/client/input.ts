@@ -1,4 +1,6 @@
 import { updateDirection } from "./networking";
+import { k } from "./render"
+import { getCurrentState } from "./state";
 
 function onMouseInput(e: MouseEvent) {
     handleInput(e.clientX, e.clientY);
@@ -10,12 +12,17 @@ function onTouchInput(e: TouchEvent) {
 }
 
 function handleInput(x: number, y: number) {
-    const dir = Math.atan2(
-        x - window.innerWidth / 2,
-        window.innerHeight / 2 - y
-    )
+    const me = getCurrentState().me;
+    if (me) {
+        const mePos = k.vec2(me.x, me.y)
+        const anchor = k.toScreen(mePos);
+        const dir = Math.atan2(
+            x - anchor.x,
+            anchor.y - y
+        )
 
-    updateDirection(dir)
+        updateDirection(dir)
+    }
 }
 
 export function startCapturingInput() {
