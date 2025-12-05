@@ -105,15 +105,15 @@ export class Game {
     
     createUpdate(player: Player, leaderboard: Score[]): GameState {
         const nearbyPlayers = Object.values(this.players).filter(
-            p => p !== player && p.distanceTo(player) <= CONSTANTS.MAP_SIZE / 2
+            p => p !== player && p.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
         );
 
         const nearbyBullets = this.bullets.filter(
-            b => b.distanceTo(player) <= CONSTANTS.MAP_SIZE / 2
+            b => b.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
         )
 
         const nearbyHazzards = this.hazards.filter(
-            h => h.distanceTo(player) <= CONSTANTS.MAP_SIZE / 2
+            h => h.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
         )
 
         return {

@@ -7,6 +7,7 @@ const CONSTANTS = {
     },
     
     MAP_SIZE:3000,
+    MAP_SIZE_SQ: 3000 ** 2,
 
     PLAYER_RADIUS: 25,
     PLAYER_MAX_HP: 100,

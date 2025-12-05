@@ -6,7 +6,8 @@
   "scripts": {
     "build-client": "webpack --config webpack.prod.js",
     "dev": "npx tsc && NODE_ENV=development node dist/server/index.js",
-    "start": "webpack --config webpack.prod.js && npx tsc && NODE_ENV=prod node dist/server/index.js",
+    "start": "webpack --config webpack.prod.js && npx tsc && NODE_ENV=production node dist/server/index.js",
+    "inspector": "npx tsc && NODE_ENV=development node --inspect=0.0.0.0:9229 dist/server/index.js",
     "test50": "npx tsc && node dist/runner50.js"
   },
   "keywords": [],

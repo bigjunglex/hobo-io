@@ -37,7 +37,7 @@ class LoadTester {
 
         for (let i = 0; i < this.count; i++) {
             await this.connectPlayer();
-            await setTimeout(10)
+            await setTimeout(40)
         }
 
         console.log('All players connected!');
@@ -60,8 +60,7 @@ class LoadTester {
             lastUpdate = now;
             this.stats.latency.push(ping)
         });
-        socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver());
-        socket.on('disconnect', () => this.stats.errors++ )
+        socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver(socket));
 
         const spriteId = Math.floor(Math.random() * 4)
 
@@ -91,12 +90,13 @@ class LoadTester {
         }, 2000)
     }
 
-    onGameOver() {
+    onGameOver(s: Socket) {
         this.stats.gamesOver++
+        s.disconnect();
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 200);
+const tester = new LoadTester('ws://localhost:7878/', 500);
 
 tester.connectAll().then(() => {
     setInterval(() => {

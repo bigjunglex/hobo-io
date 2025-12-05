@@ -20,10 +20,10 @@ export class Entity {
         this.y -= dt * this.speed * Math.cos(this.direction);
     }
 
-    distanceTo(target: Entity | Hazard) {
+    distanceToSq(target: Entity | Hazard) {
         const dx = this.x - target.x;
         const dy = this.y - target.y;
-        return Math.sqrt(dx * dx + dy * dy);
+        return dx * dx + dy * dy;
     }
 
     setDirection(direction: number) {
