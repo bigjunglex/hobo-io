@@ -21,6 +21,7 @@ const CONSTANTS = {
     HAZARD_RADIUS: 15,
     HAZARD_WEB_SPRITE: 'spider_web',
     HAZARD_PORTAL_SPRITE: 'portal',
+    HAZARD_HASTE_SPRITE: 'mushroom',
 
     SCORE_BULLET_HIT: 20,
     SCORE_PER_SECOND: 1,

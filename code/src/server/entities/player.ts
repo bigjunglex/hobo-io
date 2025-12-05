@@ -8,6 +8,7 @@ export class Player extends Entity {
     public hp: number;
     public username: string;
     public sprite: string;
+    public fireRate: number;
 
     constructor(id: string, username: string, x: number, y: number, sprite: string) {
         super(
@@ -23,6 +24,7 @@ export class Player extends Entity {
         this.hp = CONSTANTS.PLAYER_MAX_HP;
         this.fireCooldown = 0;
         this.score = 0;
+        this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
     }
 
     update(dt: number): Bullet|null {
@@ -34,7 +36,7 @@ export class Player extends Entity {
 
         this.fireCooldown -= dt;
         if (this.fireCooldown <= 0) {
-            this.fireCooldown += CONSTANTS.PLAYER_FIRE_COOLDOWN;
+            this.fireCooldown += this.fireRate
             return new Bullet(this.id, this.x, this.y, this.direction)
         }
         return null

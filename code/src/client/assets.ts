@@ -11,6 +11,7 @@ export async function loadAssets() {
     promises.push(k.loadSprite('ghosty', 'ghosty.png'));
     promises.push(k.loadSprite('spider_web', 'spider_web.png'));
     promises.push(k.loadSprite('portal', 'portal.png'));
+    promises.push(k.loadSprite('mushroom', 'mushroom.png'))
     
     return Promise.all(promises);
 }

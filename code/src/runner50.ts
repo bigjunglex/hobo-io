@@ -33,11 +33,12 @@ class LoadTester {
 
     async connectAll() {
         console.log(`Connecting ${this.count} players...`);
-        this.run()
+        this.run();
+        this.printStats(10000);
 
         for (let i = 0; i < this.count; i++) {
             await this.connectPlayer();
-            await setTimeout(40)
+            await setTimeout(500)
         }
 
         console.log('All players connected!');
@@ -94,17 +95,19 @@ class LoadTester {
         this.stats.gamesOver++
         s.disconnect();
     }
+
+    printStats(t: number) {
+        setInterval(() => {
+            const stats = tester.getStats();
+            console.log('\n <----|.. [ Stats ] ..|---->');
+            console.log('[Connected]:', stats.connected);
+            console.log('[Errored]:', stats.errors);
+            console.log('[Average Latency]:', stats.avgLatency, 'ms');
+            console.log('[Games Over]: ', stats.gamesOver)
+        }, t)
+    }
 }
 
 const tester = new LoadTester('ws://localhost:7878/', 500);
 
-tester.connectAll().then(() => {
-    setInterval(() => {
-        const stats = tester.getStats();
-        console.log('\n <----|.. [ Stats ] ..|---->');
-        console.log('[Connected]:', stats.connected);
-        console.log('[Errored]:', stats.errors);
-        console.log('[Average Latency]:', stats.avgLatency, 'ms');
-        console.log('[Games Over]: ', stats.gamesOver)
-    }, 10000)
-});
+tester.connectAll()

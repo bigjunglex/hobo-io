@@ -3,7 +3,8 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
-import { createPortalHazzard, createWebHazzard, Hazard } from "./entities/hazard.js";
+import { createHasteHazzard, createPortalHazzard, createWebHazzard, Hazard } from "./entities/hazard.js";
+import { getRandomCoords, getRandomCoordsCenter } from "./utils.js";
 
 
 export class Game {
@@ -18,7 +19,7 @@ export class Game {
         this.sockets = {};
         this.players = {};
         this.bullets = [];
-        this.hazards = this.generateWebHazards();
+        this.hazards = this.generateHazards();
         this.lastUpdateTime = Date.now();
         this.shouldSendUpdate = false;
         setInterval(this.update.bind(this), 1000 / 60);
@@ -27,8 +28,8 @@ export class Game {
     addPlayer( socket:Socket, username: string, sprite: string ) {
         this.sockets[socket.id] = socket;
 
-        const x = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
-        const y = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
+        const x = getRandomCoordsCenter();
+        const y = getRandomCoordsCenter();
         this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
     }
     
@@ -60,10 +61,8 @@ export class Game {
             const newBullet = player.update(dt);
             if (newBullet) this.bullets.push(newBullet);
         })
-        /**
-         * hazard checks in apply collisions  NOT quite visible,
-         * separeta concerns mb?
-         */
+
+
         const destroyedBullets: Bullet[] = applyCollisions(
             Object.values(this.players),
             this.bullets,
@@ -133,21 +132,15 @@ export class Game {
             .map( p => ({username: p.username, score: Math.round(p.score)}))
     }
 
-    generateWebHazards(): Hazard[] {
+    generateHazards(): Hazard[] {
         const hazards: Hazard[] = []
         
-        for (let i = 0; i < 10; i++) {
-            const x = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
-            const y = CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
-            const web = createWebHazzard(x, y);
-            hazards.push(web)
-        }
-
         for (let i = 0; i < 5; i++) {
-            const x = CONSTANTS.MAP_SIZE * (0.45 + Math.random() * 0.5);
-            const y = CONSTANTS.MAP_SIZE * (0.45 + Math.random() * 0.5);
-            const web = createPortalHazzard(x, y);
-            hazards.push(web)
+            const web = createWebHazzard(getRandomCoords(), getRandomCoords());
+            const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
+            const haste = createHasteHazzard(getRandomCoords(), getRandomCoords());
+
+            hazards.push(web, portal, haste)
         }
     
         return hazards

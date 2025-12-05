@@ -33,7 +33,9 @@ k.scene('arena', () => {
             }
 
             for (const h of hazards) {
-                k.add(createHazard(h))
+                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_WEB_SPRITE) {
+                    k.add(createHazard(h))
+                }
             }
 
             for (const b of bullets) {
