@@ -4,18 +4,21 @@ import { getCurrentState } from './state';
 import CONSTANTS from '../shared/constants';
 
 const canvas = document.getElementById('game') as HTMLCanvasElement;
-setCanvasDimensions();
-window.addEventListener('resize', debounce(40, setCanvasDimensions))
+const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
+
+
 export const k = kaplay({ canvas, debugKey: 'f3' });
 
-const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
+// commented out until proper scaling achived
+// setCanvasDimensions();
+// window.addEventListener('resize', debounce(40, setCanvasDimensions))
+// k.onSceneLeave(() => setCanvasDimensions())
 
 k.scene('arena', () => {
     k.add(createBackground())
     k.onUpdate(() => {
-        k.destroyAll('obj')
-        const { me, others, bullets, hazards} = getCurrentState();
-        
+        const me = getCurrentState().me;
+
         if (me) {
             const y = me.y > MAP_SIZE / 2 
                 ? Math.min(me.y, MAP_SIZE - canvas.height / 2)
@@ -26,20 +29,33 @@ k.scene('arena', () => {
                 : Math.max(me.x, canvas.width / 2);
 
             k.setCamPos(x, y);
-            k.add(createPlayer(me));
+        }
+    })
 
+    k.onDraw(() => {
+        const {me, others, bullets, hazards } = getCurrentState();
+
+        if (me) {
+            drawPlayer(me);
+        }
+
+        if (others) {
             for (const p of others) {
-                k.add(createPlayer(p))
+                drawPlayer(p)
             }
+        }
 
+        if (bullets) {
+            for (const b of bullets) {
+                drawBullet(b)
+            }
+        }
+
+        if (hazards) {
             for (const h of hazards) {
                 if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_WEB_SPRITE) {
-                    k.add(createHazard(h))
+                    drawHazard(h)
                 }
-            }
-
-            for (const b of bullets) {
-                k.add(createBullet(b))
             }
         }
     })
@@ -51,6 +67,7 @@ k.scene('entry', () => {
     k.add(bg)
 })
 
+
 export function stopRendering() {
     k.go('entry');
 };
@@ -60,60 +77,51 @@ export function startRendering() {
 };
 
 
-function createPlayer(player: Player & { sprite?: string }) {
+function drawPlayer(player: Player) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
-    const obj = k.make([
-        k.sprite(player.sprite!),
-        k.pos(x,y),
-        k.anchor('center'),
-        k.z(10),
-        'obj'
-    ])
+    const flipped = degrees < -90;
 
-    const gun = obj.add([
-        k.sprite('gun'),
-        k.anchor('left'),
-        k.pos(15, 10),
-        k.rotate(degrees),
-    ])
+    if (!isDrawable(x, y)) return;
 
-    if (degrees < -90){
-        gun.flipY = true;
-        gun.pos = k.vec2(-15, 10);
-    }
+    k.drawSprite({
+        sprite: player.sprite,
+        pos: k.vec2(x, y),
+        anchor: 'center',
+    })
 
-    obj.add([
-        k.text(player.username, {
-            font: 'happy',
-            size: 20
-        }),
-        k.pos(0, -40),
-        k.anchor('center')
-    ])
+    k.drawSprite({
+        sprite: 'gun',
+        anchor: 'left',
+        pos: flipped ? k.vec2(x - 15, y + 10) : k.vec2(x + 15, y + 10),
+        angle: degrees,
+        flipY: flipped
+    })
 
-    obj.add([
-        k.text(`${Math.floor(hp)}/${PLAYER_MAX_HP}`, {
-            size: 12,
-            font: 'happy'
-        
-        }),
-        k.pos(0, 35),
-        k.anchor('center')
-    ])
+    k.drawText({
+        text: player.username,
+        font: 'happy',
+        size: 20,
+        pos: k.vec2(x, y - 40),
+        anchor: 'center'
+    })
 
-
-    return obj
+    k.drawText({
+        text: `${Math.floor(hp)}/${PLAYER_MAX_HP}`,
+        font: 'happy',
+        size: 12,
+        pos: k.vec2(x, y + 35),
+        anchor: 'center'
+    })
 }
 
-function createHazard(hazard: SerializedHazard) {
-    return k.make([
-        k.sprite(hazard.sprite),
-        k.anchor('center'),
-        k.pos(hazard.x, hazard.y),
-        k.z(0),
-        'obj'
-    ])
+function drawHazard(hazard: SerializedHazard) {
+    if (!isDrawable(hazard.x, hazard.y)) return; 
+    k.drawSprite({
+        sprite: hazard.sprite,
+        anchor: 'center',
+        pos: k.vec2(hazard.x, hazard.y)
+    })
 }
 
 function createBackground() {
@@ -155,17 +163,32 @@ function createBackground() {
     return bg;
 }
 
-function createBullet(bullet: Bullet | SerializedEntity) {
-    return k.make([
-        k.circle(BULLET_RADIUS),
-        k.pos(bullet.x, bullet.y),
-        k.color(k.MAGENTA),
-        k.z(10),
-        'obj'
-    ])
+function drawBullet(bullet: Bullet | SerializedEntity) {
+    if (!isDrawable(bullet.x, bullet.y)) return;
+    k.drawCircle({
+        radius: BULLET_RADIUS,
+        color: k.MAGENTA,
+        pos: k.vec2(bullet.x, bullet.y)
+    })
 }
 
+/**
+ * TODO: add offsets maybe so it stayas halfed on screen???
+ * if offest, how to find size of sprite / 2?
+ */
+function isDrawable(x:number, y: number): boolean {
+    const screenPos = k.toScreen(k.vec2(x,y));
+    const xCheck = screenPos.x >= 0 && screenPos.x <= canvas.width; 
+    const yCheck = screenPos.y >= 0 && screenPos.y <= canvas.height;
 
+    return xCheck && yCheck
+}
+
+/**
+ * BUG OUT on phones / through telegram webview, 
+ * TODO: how to scale for different screens?
+ * atm big screens see whole map, while phones see pointblank
+ */
 function setCanvasDimensions() {
     const scaleR = Math.max(1, 800 / window.innerWidth);
     canvas.width = scaleR * window.innerWidth;

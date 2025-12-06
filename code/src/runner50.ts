@@ -38,7 +38,7 @@ class LoadTester {
 
         for (let i = 0; i < this.count; i++) {
             await this.connectPlayer();
-            await setTimeout(500)
+            await setTimeout(100)
         }
 
         console.log('All players connected!');
