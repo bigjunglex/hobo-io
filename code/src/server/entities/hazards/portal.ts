@@ -1,4 +1,5 @@
 import CONSTANTS from "../../../shared/constants.js";
+import { getRandomCoords } from "../../utils.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -6,6 +7,9 @@ function portalEffect(this: Hazard, player: Player) {
     if (this.onCooldown) return;
     this.onCooldown = true;
     
+    player.x = getRandomCoords();
+    player.y = getRandomCoords();
+
     setTimeout(() => {
         this.onCooldown = false;
         this.reposition();
