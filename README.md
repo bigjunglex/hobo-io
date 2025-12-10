@@ -16,4 +16,5 @@ Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about 
 #### Built with 
 * WebSockets - [Socket.io](https://socket.io/)
 * Render - [Kaplay](https://kaplayjs.com/)
-* Assets - [Kaplay/Crew](https://kaplayjs.com/crew/)
+* Assets : 
+    [Kaplay/Crew](https://kaplayjs.com/crew/) & [Poof](https://opengameart.org/content/poof-effect-spritesheet) by [jellyfizh](https://opengameart.org/users/jellyfizh)

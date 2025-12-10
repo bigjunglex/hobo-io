@@ -14,6 +14,9 @@ const CONSTANTS = {
     PLAYER_SPEED: 400,
     PLAYER_FIRE_COOLDOWN: 0.4,
 
+    PLAYER_EFFECT_BOOST: 'boost',
+    PLAYER_EFFECT_SHIELD: 'shield',
+    
     BULLET_RADIUS: 3,
     BULLET_SPEED: 800,
     BULLET_DAMAGE: 10,
@@ -22,6 +25,7 @@ const CONSTANTS = {
     HAZARD_WEB_SPRITE: 'spider_web',
     HAZARD_PORTAL_SPRITE: 'portal',
     HAZARD_HASTE_SPRITE: 'mushroom',
+    HAZARD_SHIELD_SPRITE: 'steel',
 
     SCORE_BULLET_HIT: 20,
     SCORE_PER_SECOND: 1,

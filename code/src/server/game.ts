@@ -3,8 +3,11 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
-import { createHasteHazzard, createPortalHazzard, createWebHazzard, Hazard } from "./entities/hazard.js";
+import { Hazard } from "./entities/hazard.js";
 import { getRandomCoords, getRandomCoordsCenter } from "./utils.js";
+import { createWebHazzard } from "./entities/hazards/web.js";
+import { createPortalHazzard } from "./entities/hazards/portal.js";
+import { createHasteHazzard } from "./entities/hazards/haste.js";
 
 
 export class Game {

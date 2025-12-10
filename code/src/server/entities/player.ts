@@ -9,6 +9,7 @@ export class Player extends Entity {
     public username: string;
     public sprite: string;
     public fireRate: number;
+    public effect: string|undefined;
 
     constructor(id: string, username: string, x: number, y: number, sprite: string) {
         super(
@@ -25,6 +26,7 @@ export class Player extends Entity {
         this.fireCooldown = 0;
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
+        this.effect = undefined;
     }
 
     update(dt: number): Bullet|null {
@@ -56,7 +58,8 @@ export class Player extends Entity {
             username: this.username,
             sprite: this.sprite,
             direction: this.direction,
-            hp: this.hp
+            hp: this.hp,
+            effect: this.effect,
         }
     }
 

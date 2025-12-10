@@ -24,72 +24,13 @@ export class Hazard extends Entity {
             onCooldown: this.onCooldown,
         }
     }
-}
 
-function webEffect(this:Hazard, player: Player) {
-    if (this.onCooldown) return;
-    this.onCooldown = true;
-    player.speed = 0;
-
-    setTimeout(() => {
-        player.speed = CONSTANTS.PLAYER_SPEED;
-    }, 2000)
-
-    setTimeout(() => {
-        this.onCooldown = false;
-    }, 3000)
-};
-
-
-function portalEffect(this: Hazard, player: Player) {
-    if (this.onCooldown) return;
-    this.onCooldown = true;
-
-    player.x = getRandomCoords();
-    player.y = getRandomCoords();
-    
-    setTimeout(() => {
-        this.onCooldown = false;
+    reposition() {
         this.x = getRandomCoords();
         this.y = getRandomCoords();
-    }, 500)
-}
-
-function hasteEffect(this:Hazard, player: Player) {
-    if (this.onCooldown) return;
-    this.onCooldown = true;
-    
-    player.speed = CONSTANTS.PLAYER_SPEED * 1.5;
-    player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN / 2;
-
-    setTimeout(() => {
-        player.speed = CONSTANTS.PLAYER_SPEED;
-        player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
-    }, 3000)
-
-    setTimeout(() => {
-        this.onCooldown = false;
-        this.x = getRandomCoords();
-        this.y = getRandomCoords();
-    }, 3000)
+    }
 }
 
 
-export function createPortalHazzard(x: number, y: number) {
-    const id = crypto.randomUUID().substring(0,6);
-    const sprite = CONSTANTS.HAZARD_PORTAL_SPRITE;
-    return new Hazard(id, x, y, portalEffect, sprite)
-}
 
-export function createWebHazzard(x:number, y: number) {
-    const id = crypto.randomUUID().substring(0,6);
-    const sprite = CONSTANTS.HAZARD_WEB_SPRITE;
-    return new Hazard(id, x, y, webEffect, sprite)
-}
-
-export function createHasteHazzard(x:number, y: number) {
-    const id = crypto.randomUUID().substring(0, 6);
-    const sprite = CONSTANTS.HAZARD_HASTE_SPRITE;
-    return new Hazard(id, x, y, hasteEffect, sprite);
-}
 

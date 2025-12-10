@@ -62,6 +62,10 @@ class LoadTester {
             this.stats.latency.push(ping)
         });
         socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver(socket));
+        socket.on('connect_error', (err) => {
+            this.stats.errors++
+            console.log(err)
+        })
 
         const spriteId = Math.floor(Math.random() * 4)
 
@@ -108,6 +112,6 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 500);
+const tester = new LoadTester('ws://localhost:7878/', 1500);
 
 tester.connectAll()

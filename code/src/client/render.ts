@@ -1,5 +1,4 @@
-import kaplay from 'kaplay';
-import { debounce } from 'throttle-debounce';
+import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState } from './state';
 import CONSTANTS from '../shared/constants';
 
@@ -14,21 +13,28 @@ export const k = kaplay({ canvas, debugKey: 'f3' });
 // window.addEventListener('resize', debounce(40, setCanvasDimensions))
 // k.onSceneLeave(() => setCanvasDimensions())
 
+type RenderState = ReturnType<typeof getCurrentState>
+
+
 k.scene('arena', () => {
+    let effects:EffectEntry[] = [];
+
     k.add(createBackground())
     k.onUpdate(() => {
-        const me = getCurrentState().me;
-
+        const state = getCurrentState();
+        const me = state.me;
+        
         if (me) {
             const y = me.y > MAP_SIZE / 2 
-                ? Math.min(me.y, MAP_SIZE - canvas.height / 2)
-                : Math.max(me.y, canvas.height / 2);
+            ? Math.min(me.y, MAP_SIZE - canvas.height / 2)
+            : Math.max(me.y, canvas.height / 2);
             
             const x = me.x > MAP_SIZE / 2 
-                ? Math.min(me.x, MAP_SIZE - canvas.width / 2)
-                : Math.max(me.x, canvas.width / 2);
-
+            ? Math.min(me.x, MAP_SIZE - canvas.width / 2)
+            : Math.max(me.x, canvas.width / 2);
+            
             k.setCamPos(x, y);
+            effects = updateEffects(state, effects);
         }
     })
 
@@ -76,13 +82,71 @@ export function startRendering() {
     k.go('arena')
 };
 
+function updateEffects(state: RenderState, effects: EffectEntry[]) {
+    const effectedPlayers:Player[] = [];
+    const aliveEffects:EffectEntry[] = [];
 
-function drawPlayer(player: Player) {
+    if (state.me?.effect) effectedPlayers.push(state.me);
+
+    for (let i = 0; i < state.others.length; i++) {
+        const p = state.others[i];
+        if (!isDrawable(p.x, p.y)) continue;
+        if (p?.effect) effectedPlayers.push(p);
+    }
+
+    for (let i = 0; i < effectedPlayers.length; i++) {
+        const p = effectedPlayers[i];
+
+        if (effects.find(e => e.entityID === p.id)) continue;
+        
+        const ref = k.add([
+            k.sprite('haste', { anim: 'anim' }),
+            k.scale(0.5),
+            k.anchor('center'),
+            k.pos(p.x, p.y),
+            'effect'
+        ])
+        
+        const entry: EffectEntry = {
+            entityID: p.id,
+            type: 'haste', // HARDCODED remember to change later
+            ref
+        }
+
+        effects.push(entry);
+    }
+    
+    effects.forEach(e => {
+        let anchorEntity:Player|null = null;
+        const effect = e.ref as GameObj & PosComp;
+
+        if (e.entityID === state.me.id){
+            anchorEntity = state.me;
+        } else {
+            const others = state.others.find(p => p.id === e.entityID);
+            if (others) anchorEntity = others;
+        }
+        
+        if (anchorEntity && anchorEntity.effect) {
+            const { x, y } = anchorEntity;
+            const newPos = k.vec2(x, y)
+            effect.moveTo(newPos)
+            aliveEffects.push(e)
+        } else {
+            effect.destroy();
+        }
+    })
+
+    return aliveEffects
+}
+
+function drawPlayer(player: Player, animState: null|number = null) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
     const flipped = degrees < -90;
 
     if (!isDrawable(x, y)) return;
+
 
     k.drawSprite({
         sprite: player.sprite,
@@ -194,3 +258,4 @@ function setCanvasDimensions() {
     canvas.width = scaleR * window.innerWidth;
     canvas.height = scaleR * window.innerHeight;
 }
+

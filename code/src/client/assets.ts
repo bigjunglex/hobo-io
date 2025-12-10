@@ -11,7 +11,21 @@ export async function loadAssets() {
     promises.push(k.loadSprite('ghosty', 'ghosty.png'));
     promises.push(k.loadSprite('spider_web', 'spider_web.png'));
     promises.push(k.loadSprite('portal', 'portal.png'));
-    promises.push(k.loadSprite('mushroom', 'mushroom.png'))
+    promises.push(k.loadSprite('mushroom', 'mushroom.png'));
+    promises.push(k.loadSprite('steel', 'steel.png'));
+    promises.push(k.loadSprite('shield', 'spike.png'));
+    promises.push(k.loadSprite('haste', 'poof.png', {
+        sliceX: 6,
+        sliceY: 5,
+        anims: {
+            "anim": {
+                from: 2,
+                to: 15,
+                loop: true,
+                speed: 30,
+            },
+        },
+    }))
     
     return Promise.all(promises);
 }
