@@ -14,7 +14,7 @@ export async function loadAssets() {
     promises.push(k.loadSprite('mushroom', 'mushroom.png'));
     promises.push(k.loadSprite('steel', 'steel.png'));
     promises.push(k.loadSprite('shield', 'spike.png'));
-    promises.push(k.loadSprite('haste', 'poof.png', {
+    promises.push(k.loadSprite('boost', 'poof.png', {
         sliceX: 6,
         sliceY: 5,
         anims: {

@@ -7,6 +7,7 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
     const destroyedBullets:Bullet[] = [];
     const collideRange = (CONSTANTS.PLAYER_RADIUS + CONSTANTS.BULLET_RADIUS) ** 2;
     const collideRangeHazards = (CONSTANTS.PLAYER_RADIUS + CONSTANTS.HAZARD_RADIUS) ** 2;
+    const collideRangeMelee = (CONSTANTS.PLAYER_RADIUS * 2) ** 2;
 
     for (let i = 0; i < bullets.length; i++) {
         const bullet = bullets[i];
@@ -16,9 +17,14 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
                 bullet.parentID !== player.id &&
                 player.distanceToSq(bullet) <= collideRange
             ) {
-                destroyedBullets.push(bullet);
-                player.takeBulletDamage();
-                break;
+                if (player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD && shieldAndBulletFacing(player, bullet)) {
+                    destroyedBullets.push(bullet);
+                    break;
+                } else {
+                    destroyedBullets.push(bullet);
+                    player.takeBulletDamage();
+                    break;
+                }
             }
         }
     }
@@ -33,5 +39,31 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
         }
     }
 
+    for (let i = 0; i < players.length; i++) {
+        const collider = players[i];
+        if (collider.effect !== CONSTANTS.PLAYER_EFFECT_SHIELD) {
+            continue;
+        } else {
+            for (let j = 0; j < players.length; j++) {
+                const collision = players[j]
+                if (
+                    collision.id !== collider.id &&
+                    collider.distanceToSq(collision) <= collideRangeMelee
+                ) {
+                    collision.takeMeleeDamage();
+                    collider.onDealtDamage();
+                }
+            }
+        }
+    }
+
     return destroyedBullets;
+}
+
+export function applyMeleeCollisions() {}
+
+function shieldAndBulletFacing(player: Player, bullet: Bullet): boolean {
+    const dirDiff = (player.direction - bullet.direction + Math.PI) % (2 * Math.PI) - Math.PI;
+    const dirDev = Math.abs(Math.abs(dirDiff) - Math.PI)
+    return dirDev <= Math.PI / 4;
 }

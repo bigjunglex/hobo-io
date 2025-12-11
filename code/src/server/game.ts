@@ -8,6 +8,7 @@ import { getRandomCoords, getRandomCoordsCenter } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createHasteHazzard } from "./entities/hazards/haste.js";
+import { createShieldHazzard } from "./entities/hazards/shield.js";
 
 
 export class Game {
@@ -142,8 +143,9 @@ export class Game {
             const web = createWebHazzard(getRandomCoords(), getRandomCoords());
             const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
             const haste = createHasteHazzard(getRandomCoords(), getRandomCoords());
+            const shield = createShieldHazzard(getRandomCoords(), getRandomCoords())
 
-            hazards.push(web, portal, haste)
+            hazards.push(web, portal, haste, shield)
         }
     
         return hazards

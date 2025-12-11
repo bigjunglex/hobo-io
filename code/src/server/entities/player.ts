@@ -48,6 +48,10 @@ export class Player extends Entity {
         this.hp -= CONSTANTS.BULLET_DAMAGE;
     }
 
+    takeMeleeDamage() {
+        this.hp -= CONSTANTS.MELEE_DAMAGE;
+    }
+
     onDealtDamage() {
         this.score += CONSTANTS.SCORE_BULLET_HIT;
     }

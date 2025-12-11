@@ -86,21 +86,22 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
     const effectedPlayers:Player[] = [];
     const aliveEffects:EffectEntry[] = [];
 
-    if (state.me?.effect) effectedPlayers.push(state.me);
+    if (state.me?.effect === CONSTANTS.PLAYER_EFFECT_BOOST) effectedPlayers.push(state.me);
 
     for (let i = 0; i < state.others.length; i++) {
         const p = state.others[i];
         if (!isDrawable(p.x, p.y)) continue;
-        if (p?.effect) effectedPlayers.push(p);
+        if (p?.effect === CONSTANTS.PLAYER_EFFECT_BOOST) effectedPlayers.push(p);
     }
 
     for (let i = 0; i < effectedPlayers.length; i++) {
         const p = effectedPlayers[i];
+        const effect = p.effect!;
 
         if (effects.find(e => e.entityID === p.id)) continue;
         
         const ref = k.add([
-            k.sprite('haste', { anim: 'anim' }),
+            k.sprite(effect, { anim: 'anim' }),
             k.scale(0.5),
             k.anchor('center'),
             k.pos(p.x, p.y),
@@ -109,7 +110,7 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
         
         const entry: EffectEntry = {
             entityID: p.id,
-            type: 'haste', // HARDCODED remember to change later
+            type: effect,
             ref
         }
 
@@ -147,20 +148,32 @@ function drawPlayer(player: Player, animState: null|number = null) {
 
     if (!isDrawable(x, y)) return;
 
-
     k.drawSprite({
         sprite: player.sprite,
         pos: k.vec2(x, y),
         anchor: 'center',
     })
 
-    k.drawSprite({
-        sprite: 'gun',
-        anchor: 'left',
-        pos: flipped ? k.vec2(x - 15, y + 10) : k.vec2(x + 15, y + 10),
-        angle: degrees,
-        flipY: flipped
-    })
+    if (player?.effect && player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD) {
+        const shieldX = x + 40 * Math.cos(direction - Math.PI / 2); 
+        const shieldY = y + 40 * Math.sin(direction - Math.PI / 2);
+
+        k.drawSprite({
+            sprite: 'shield',
+            pos: k.vec2(shieldX, shieldY),
+            anchor: 'center',
+            angle: degrees + 90
+        })
+
+    } else {
+        k.drawSprite({
+            sprite: 'gun',
+            anchor: 'left',
+            pos: flipped ? k.vec2(x - 15, y + 10) : k.vec2(x + 15, y + 10),
+            angle: degrees,
+            flipY: flipped,
+        })
+    }
 
     k.drawText({
         text: player.username,
@@ -180,10 +193,12 @@ function drawPlayer(player: Player, animState: null|number = null) {
 }
 
 function drawHazard(hazard: SerializedHazard) {
-    if (!isDrawable(hazard.x, hazard.y)) return; 
+    if (!isDrawable(hazard.x, hazard.y)) return;
+    const scale = hazard.sprite === CONSTANTS.HAZARD_SHIELD_SPRITE ? 0.6 : 1;
     k.drawSprite({
         sprite: hazard.sprite,
         anchor: 'center',
+        scale,
         pos: k.vec2(hazard.x, hazard.y)
     })
 }
