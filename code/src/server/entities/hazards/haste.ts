@@ -7,15 +7,19 @@ function hasteEffect(this:Hazard, player: Player) {
     if (this.onCooldown) return;
     this.onCooldown = true;
     
+    player.clearEffectTimeout();
     player.speed = CONSTANTS.PLAYER_SPEED * 1.5;
     player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN / 2;
     player.effect = CONSTANTS.PLAYER_EFFECT_BOOST;
+    
 
-    setTimeout(() => {
+    const effectTimeout = setTimeout(() => {
         player.speed = CONSTANTS.PLAYER_SPEED;
         player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         player.effect = undefined;
     }, 3000)
+
+    player.effectTimeout = effectTimeout;
 
     setTimeout(() => {
         this.onCooldown = false;

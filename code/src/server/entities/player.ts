@@ -10,6 +10,7 @@ export class Player extends Entity {
     public sprite: string;
     public fireRate: number;
     public effect: string|undefined;
+    public effectTimeout: NodeJS.Timeout|null;
 
     constructor(id: string, username: string, x: number, y: number, sprite: string) {
         super(
@@ -27,6 +28,7 @@ export class Player extends Entity {
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         this.effect = undefined;
+        this.effectTimeout = null;
     }
 
     update(dt: number): Bullet|null {
@@ -54,6 +56,13 @@ export class Player extends Entity {
 
     onDealtDamage() {
         this.score += CONSTANTS.SCORE_BULLET_HIT;
+    }
+
+    clearEffectTimeout() {
+        if (this.effectTimeout) {
+            clearTimeout(this.effectTimeout)
+            this.effectTimeout = null
+        }
     }
 
     serializeForUpdate(): SerializedPlayer {

@@ -1,20 +1,19 @@
 import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState } from './state';
 import CONSTANTS from '../shared/constants';
+import { debounce } from 'throttle-debounce';
 
+let scale = 1;
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
 
-
 export const k = kaplay({ canvas, debugKey: 'f3' });
 
-// commented out until proper scaling achived
-// setCanvasDimensions();
-// window.addEventListener('resize', debounce(40, setCanvasDimensions))
-// k.onSceneLeave(() => setCanvasDimensions())
+setScale();
+window.addEventListener('resize', debounce(40, setScale))
+k.onSceneLeave(() => setScale())
 
 type RenderState = ReturnType<typeof getCurrentState>
-
 
 k.scene('arena', () => {
     let effects:EffectEntry[] = [];
@@ -25,14 +24,18 @@ k.scene('arena', () => {
         const me = state.me;
         
         if (me) {
+            const viewWidth = canvas.width / scale;
+            const viewHeight = canvas.height / scale;
+
             const y = me.y > MAP_SIZE / 2 
-            ? Math.min(me.y, MAP_SIZE - canvas.height / 2)
-            : Math.max(me.y, canvas.height / 2);
+                ? Math.min(me.y, MAP_SIZE - viewHeight / 2)
+                : Math.max(me.y, viewHeight / 2);
             
             const x = me.x > MAP_SIZE / 2 
-            ? Math.min(me.x, MAP_SIZE - canvas.width / 2)
-            : Math.max(me.x, canvas.width / 2);
+                ? Math.min(me.x, MAP_SIZE - viewWidth / 2 )
+                : Math.max(me.x, viewWidth / 2);
             
+            k.setCamScale(scale)
             k.setCamPos(x, y);
             effects = updateEffects(state, effects);
         }
@@ -178,7 +181,7 @@ function drawPlayer(player: Player, animState: null|number = null) {
     k.drawText({
         text: player.username,
         font: 'happy',
-        size: 20,
+        size: 20 / scale,
         pos: k.vec2(x, y - 40),
         anchor: 'center'
     })
@@ -186,7 +189,7 @@ function drawPlayer(player: Player, animState: null|number = null) {
     k.drawText({
         text: `${Math.floor(hp)}/${PLAYER_MAX_HP}`,
         font: 'happy',
-        size: 12,
+        size: 12 / scale,
         pos: k.vec2(x, y + 35),
         anchor: 'center'
     })
@@ -251,6 +254,7 @@ function drawBullet(bullet: Bullet | SerializedEntity) {
     })
 }
 
+
 /**
  * TODO: add offsets maybe so it stayas halfed on screen???
  * if offest, how to find size of sprite / 2?
@@ -264,13 +268,28 @@ function isDrawable(x:number, y: number): boolean {
 }
 
 /**
- * BUG OUT on phones / through telegram webview, 
- * TODO: how to scale for different screens?
- * atm big screens see whole map, while phones see pointblank
+ * Scaling camera to fix mob devices disandvantage
+ * big screen sees whole game > small sees 1 meter from nose
+ * TODO:
+ *  Корявая тема, особо не тестил, значение scale рандомне
  */
-function setCanvasDimensions() {
-    const scaleR = Math.max(1, 800 / window.innerWidth);
-    canvas.width = scaleR * window.innerWidth;
-    canvas.height = scaleR * window.innerHeight;
+function setScale() {
+    const w = window.innerWidth;
+    if (w < 480) {          
+        scale = 0.6;
+    } else if (w < 768) {   
+        scale = 0.75;
+    } else if (w < 1024) {  
+        scale = 0.9;
+    } else if (w < 1440) {  
+        scale = 1.0;
+    } else if (w < 1920) {  
+        scale = 1.15;
+    } else {                
+        scale = 1.3;
+    }
 }
 
+function showPing() {
+    
+}

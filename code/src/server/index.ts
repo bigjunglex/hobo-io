@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === 'development') {
 
 const server = app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
 
-const io = new Server(server)
+const io = new Server(server, { allowEIO3: false })
 
 io.on('connection', (socket) => {
     console.log('Player connected!', socket.id);
