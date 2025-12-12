@@ -1,6 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { setTimeout } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
+import customParser from "socket.io-msgpack-parser";
 import CONSTANTS from "./shared/constants.js";
 
 type Stats = {
@@ -45,7 +46,7 @@ class LoadTester {
     }
 
     async connectPlayer() {
-        const socket = io(this.url, { reconnection: false });
+        const socket = io(this.url, { reconnection: false, parser: customParser });
         await new Promise<void>(resolve => {
             socket.on('connect', () => {
                 this.stats.connected++
@@ -112,6 +113,6 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 100);
+const tester = new LoadTester('ws://localhost:7878/', 200);
 
 tester.connectAll()
