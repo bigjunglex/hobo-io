@@ -9,14 +9,15 @@ type Stats = {
     errors: number;
     latency: number[];
     gamesOver: number;
+    maxLatency: number;
 }
 
 class LoadTester {
-    url: string;
-    count:number;
-    sockets: Socket[];
-    stats: Stats;
-    sprites: string[];
+    private url: string;
+    private count:number;
+    private sockets: Socket[];
+    private stats: Stats;
+    private sprites: string[];
 
     constructor(url: string, count:number) {
         this.url = url;
@@ -26,7 +27,8 @@ class LoadTester {
             connected: 0,
             errors: 0,
             latency: [],
-            gamesOver: 0
+            gamesOver: 0,
+            maxLatency: 0,
         };
 
         this.sprites = ['zombean', 'bean', 'ghosty', 'mark']
@@ -60,6 +62,9 @@ class LoadTester {
             const now = performance.now()
             const ping = now - lastUpdate;
             lastUpdate = now;
+            if (ping > this.stats.maxLatency) {
+                this.stats.maxLatency = ping
+            }
             this.stats.latency.push(ping)
         });
         socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver(socket));
@@ -81,7 +86,8 @@ class LoadTester {
             connected: this.stats.connected,
             errors: this.stats.errors,
             avgLatency: avgLatency.toFixed(2),
-            gamesOver: this.stats.gamesOver
+            gamesOver: this.stats.gamesOver,
+            maxLatency: this.stats.maxLatency.toFixed(2)
         };
     }
 
@@ -108,11 +114,12 @@ class LoadTester {
             console.log('[Connected]:', stats.connected);
             console.log('[Errored]:', stats.errors);
             console.log('[Average Latency]:', stats.avgLatency, 'ms');
-            console.log('[Games Over]: ', stats.gamesOver)
+            console.log('[Max Latency]:', stats.maxLatency, 'ms');            
+            console.log('[Games Over]: ', stats.gamesOver);
         }, t)
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 1500);
+const tester = new LoadTester('ws://localhost:7878/', 700);
 
 tester.connectAll()

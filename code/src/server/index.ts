@@ -27,6 +27,8 @@ const io = new Server(server, {
     parser: customParser
 })
 
+io.engine.on('connection', (rawSocket) => rawSocket.request = null)
+
 io.on('connection', (socket) => {
     console.log('Player connected!', socket.id);
 
