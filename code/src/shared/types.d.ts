@@ -62,3 +62,5 @@ type SerializedPlayer = SerializedEntity & {
     direction: number;
     hp: number
 }
+
+type Factory<T> = (...args:any[]) => T

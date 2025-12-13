@@ -31,7 +31,7 @@ export class Player extends Entity {
         this.effectTimeout = null;
     }
 
-    update(dt: number): Bullet|null {
+    update(dt: number): true|null {
         super.update(dt);
         this.score += dt * CONSTANTS.SCORE_PER_SECOND;
         
@@ -41,7 +41,7 @@ export class Player extends Entity {
         this.fireCooldown -= dt;
         if (this.fireCooldown <= 0) {
             this.fireCooldown += this.fireRate
-            return new Bullet(this.id, this.x, this.y, this.direction)
+            return true
         }
         return null
     }

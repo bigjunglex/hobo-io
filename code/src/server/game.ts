@@ -4,7 +4,7 @@ import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { getRandomCoords, getRandomCoordsCenter } from "./utils.js";
+import { BulletPool, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createHasteHazzard } from "./entities/hazards/haste.js";
@@ -18,6 +18,7 @@ export class Game {
     private lastUpdateTime: number;
     private shouldSendUpdate: boolean;
     private hazards: Hazard[];
+    private bulletPool: BulletPool;
 
     constructor() {
         this.sockets = {};
@@ -26,7 +27,8 @@ export class Game {
         this.hazards = this.generateHazards();
         this.lastUpdateTime = Date.now();
         this.shouldSendUpdate = false;
-        setInterval(this.update.bind(this), 1000 / 60);
+        this.bulletPool = new BulletPool();
+        setInterval(this.update.bind(this), 1000 / 40);
     }
 
     addPlayer( socket:Socket, username: string, sprite: string ) {
@@ -56,14 +58,18 @@ export class Game {
         this.bullets.forEach(bullet => {
             if (bullet.update(dt)) {
                 bulletsToRemove.push(bullet);
+                this.bulletPool.release(bullet);
             }
         })
         this.bullets = this.bullets.filter(b => !bulletsToRemove.includes(b))
         
         Object.keys(this.sockets).forEach(id => {
             const player = this.players[id];
-            const newBullet = player.update(dt);
-            if (newBullet) this.bullets.push(newBullet);
+            const newBulletReq = player.update(dt);
+            if (newBulletReq){
+                const newBullet = this.bulletPool.recieve(player.id, player.x, player.y, player.direction)
+                this.bullets.push(newBullet);
+            }
         })
 
 
@@ -76,6 +82,7 @@ export class Game {
         destroyedBullets.forEach(b => {
             const player = this.players[b.parentID]
             if (player) player.onDealtDamage(); 
+            this.bulletPool.release(b)
         })
 
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))

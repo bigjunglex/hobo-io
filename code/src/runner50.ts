@@ -113,6 +113,6 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 200);
+const tester = new LoadTester('ws://localhost:7878/', 1500);
 
 tester.connectAll()

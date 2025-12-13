@@ -30,6 +30,15 @@ export class Entity {
         this.direction = direction;
     }
 
+    // reset(...params: ConstructorParameters<typeof Entity>)
+    public reset(id: string, x: number, y: number, direction: number, speed: number) {
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.direction = direction;
+        this.speed = speed;
+    }
+
     serializeForUpdate(): SerializedEntity {
         return {
             id: this.id,
