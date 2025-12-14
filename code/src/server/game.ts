@@ -4,7 +4,7 @@ import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BulletPool, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
+import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createHasteHazzard } from "./entities/hazards/haste.js";
@@ -96,14 +96,14 @@ export class Game {
             }
         })
 
-        if (this.shouldSendUpdate) {
-            const leaderboard = this.getLeaderboard();
+        if (this.shouldSendUpdate) {;
+            const state = this.serializeState();
             Object.keys(this.sockets).forEach(id => {
                 const socket = this.sockets[id];
                 const player = this.players[id];
                 socket.emit(
                     CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                    this.createUpdate(player, leaderboard)
+                    this.createUpdate(player, state)
                 )
             })
             this.shouldSendUpdate = false;
@@ -113,26 +113,42 @@ export class Game {
 
     }
     
-    createUpdate(player: Player, leaderboard: Score[]): GameState {
-        const nearbyPlayers = Object.values(this.players).filter(
-            p => p !== player && p.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
+    serializeState(): GlobalState {
+        const players = Object.values(this.players).map(p => p.serializeForUpdate());
+        const bullets = this.bullets.map(b => b.serializeForUpdate());
+        const hazards = this.hazards.map(h => h.serializeForUpdate());
+
+        return {
+            t: Date.now(),
+            players,
+            bullets,
+            hazards,
+            leaderboard: this.getLeaderboard(),
+        }
+    }
+
+    createUpdate(player: Player, state: GlobalState): GameState {
+        const me = state.players.find(p => p.id === player.id)!;
+        const nearbyPlayers = state.players.filter(
+            p => p.id !== player.id &&
+            distanceToSq(p.x, p.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
         );
 
-        const nearbyBullets = this.bullets.filter(
-            b => b.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
+        const nearbyBullets = state.bullets.filter(
+            b => distanceToSq(b.x, b.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
         )
 
-        const nearbyHazzards = this.hazards.filter(
-            h => h.distanceToSq(player) <= CONSTANTS.MAP_SIZE_SQ / 2
+        const nearbyHazzards = state.hazards.filter(
+            h => distanceToSq(h.x, h.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
         )
 
         return {
             t: Date.now(),
-            me: player.serializeForUpdate(),
-            others: nearbyPlayers.map(p => p.serializeForUpdate()),
-            bullets: nearbyBullets.map(b => b.serializeForUpdate()),
-            hazards: nearbyHazzards.map(h => h.serializeForUpdate()),
-            leaderboard
+            me: me,
+            others: nearbyPlayers,
+            bullets: nearbyBullets,
+            hazards: nearbyHazzards,
+            leaderboard: state.leaderboard
         }
     }
     

@@ -63,4 +63,6 @@ type SerializedPlayer = SerializedEntity & {
     hp: number
 }
 
+type GlobalState = Pick<GameState, 'bullets' | 'hazards' | 'leaderboard' | 't'> & { players: SerializedPlayer[] };
+
 type Factory<T> = (...args:any[]) => T

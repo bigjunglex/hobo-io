@@ -13,21 +13,18 @@ const connected = new Promise<void>(resolve => {
     })
 })
 
-// -----------> REMOVE LATER --------------
 const pingSpan = document.getElementById('ping')!; 
 let lastUpdate = Date.now()
 
 export const connect = (onGameOver: GameCallback) => (
     connected.then(() => {
         socket.on(CONSTATANTS.MSG_TYPES.GAME_UPDATE, (update: GameState) => {
-            // -----------> REMOVE LATER --------------
 
             const now = performance.now();
             const ping = now - lastUpdate;
             lastUpdate = now;
             pingSpan.textContent = ping.toFixed(2);
             
-            // ---------------> REMOVE LATER ^^^^^^^^^^
             processGameUpdate(update)
         });
         socket.on(CONSTATANTS.MSG_TYPES.GAME_OVER, onGameOver);

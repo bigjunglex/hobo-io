@@ -10,6 +10,12 @@ export function getRandomCoordsCenter(): number {
     return CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
 }
 
+export function distanceToSq(fx: number, fy:number, tx: number, ty: number) {
+    const dx = fx - tx;
+    const dy = fy - ty;
+    return dx * dx + dy * dy;
+}
+
 export class BulletPool {
     private pool: Bullet[];
 
