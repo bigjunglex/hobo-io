@@ -74,8 +74,9 @@ class LoadTester {
         })
 
         const spriteId = Math.floor(Math.random() * 4)
+        const name = 'CPU-' + crypto.randomUUID().substring(0,3);
 
-        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, crypto.randomUUID().substring(0,4), this.sprites[spriteId])
+        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, name, this.sprites[spriteId])
         this.sockets.push(socket);
     }
 

@@ -2,14 +2,18 @@ import express from "express";
 import webpack from "webpack";
 import { type Configuration } from "webpack"; 
 import wdm from "webpack-dev-middleware";
-import customParser from "socket.io-msgpack-parser"
+import customParser from "socket.io-msgpack-parser";
+import { App } from 'uWebSockets.js';
+import expressify from "uwebsockets-express";
+
 
 import CONSTANTS from "../shared/constants.js";
 import { type DisconnectReason, Server, Socket } from "socket.io";
 import { Game } from './game.js'
 
-const PORT = process.env.PORT ?? 7878;
-const app = express();
+const PORT = 7878;
+const uWSapp = App();
+const app = expressify(uWSapp);
 app.use(express.static('public'));
 
 if (process.env.NODE_ENV === 'development') {
@@ -21,11 +25,13 @@ if (process.env.NODE_ENV === 'development') {
     app.use(express.static('dist-client'));
 }
 
-const server = app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
+app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
 
-const io = new Server(server, { 
-    parser: customParser
-})
+const io = new Server({ 
+    parser: customParser,
+});
+
+io.attachApp(uWSapp);
 
 io.engine.on('connection', (rawSocket) => rawSocket.request = null)
 

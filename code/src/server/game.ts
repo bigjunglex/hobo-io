@@ -12,7 +12,7 @@ import { createShieldHazzard } from "./entities/hazards/shield.js";
 
 
 export class Game {
-    private sockets: Record<string, Socket>; 
+    private sockets: Record<string, Socket>;
     private players: Record<string, Player>;
     private bullets: Bullet[];
     private lastUpdateTime: number;
@@ -38,7 +38,7 @@ export class Game {
         const y = getRandomCoordsCenter();
         this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
     }
-    
+
     removePlayer( socket: Socket ) {
         delete this.sockets[socket.id];
         delete this.players[socket.id];
@@ -62,7 +62,7 @@ export class Game {
             }
         })
         this.bullets = this.bullets.filter(b => !bulletsToRemove.includes(b))
-        
+
         Object.keys(this.sockets).forEach(id => {
             const player = this.players[id];
             const newBulletReq = player.update(dt);
@@ -81,12 +81,12 @@ export class Game {
 
         destroyedBullets.forEach(b => {
             const player = this.players[b.parentID]
-            if (player) player.onDealtDamage(); 
+            if (player) player.onDealtDamage();
             this.bulletPool.release(b)
         })
 
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))
-    
+
         Object.keys(this.sockets).forEach(id => {
             const socket = this.sockets[id];
             const player = this.players[id];
@@ -98,21 +98,23 @@ export class Game {
 
         if (this.shouldSendUpdate) {;
             const state = this.serializeState();
-            Object.keys(this.sockets).forEach(id => {
-                const socket = this.sockets[id];
-                const player = this.players[id];
-                socket.emit(
-                    CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                    this.createUpdate(player, state)
-                )
+            process.nextTick(() => {
+                Object.keys(this.sockets).forEach(id => {
+                    const socket = this.sockets[id];
+                    const player = this.players[id];
+                    const update = this.createUpdate(player, state);
+                    socket.emit(
+                        CONSTANTS.MSG_TYPES.GAME_UPDATE,
+                        update
+                    )
+                })
             })
             this.shouldSendUpdate = false;
         } else {
             this.shouldSendUpdate = true;
         }
-
     }
-    
+
     serializeState(): GlobalState {
         const players = Object.values(this.players).map(p => p.serializeForUpdate());
         const bullets = this.bullets.map(b => b.serializeForUpdate());
@@ -130,7 +132,7 @@ export class Game {
     createUpdate(player: Player, state: GlobalState): GameState {
         const me = state.players.find(p => p.id === player.id)!;
         const nearbyPlayers = state.players.filter(
-            p => p.id !== player.id &&
+            p => p.id !== me.id &&
             distanceToSq(p.x, p.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
         );
 
@@ -151,7 +153,7 @@ export class Game {
             leaderboard: state.leaderboard
         }
     }
-    
+
     getLeaderboard(): Score[] {
         return Object.values(this.players)
             .sort((p1, p2) => p2.score - p1.score)
@@ -161,7 +163,7 @@ export class Game {
 
     generateHazards(): Hazard[] {
         const hazards: Hazard[] = []
-        
+
         for (let i = 0; i < 5; i++) {
             const web = createWebHazzard(getRandomCoords(), getRandomCoords());
             const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
@@ -170,7 +172,7 @@ export class Game {
 
             hazards.push(web, portal, haste, shield)
         }
-    
+
         return hazards
     }
 }

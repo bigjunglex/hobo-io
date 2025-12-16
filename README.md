@@ -14,7 +14,10 @@ Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about 
 - naive test with 200 connections
 
 #### Built with 
-* WebSockets - [Socket.io](https://socket.io/)
+* WebSockets: 
+    - [Socket.io](https://socket.io/)
+    - [uWebSockets.js](https://github.com/uNetworking/uWebSockets.js)
+    - [uWebSockets-express](https://github.com/colyseus/uWebSockets-express)
 * Render - [Kaplay](https://kaplayjs.com/)
 * Assets : 
     [Kaplay/Crew](https://kaplayjs.com/crew/) & [Poof](https://opengameart.org/content/poof-effect-spritesheet) by [jellyfizh](https://opengameart.org/users/jellyfizh)
