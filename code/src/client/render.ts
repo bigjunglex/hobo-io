@@ -17,11 +17,13 @@ type RenderState = ReturnType<typeof getCurrentState>
 
 k.scene('arena', () => {
     let effects:EffectEntry[] = [];
+    let prevHP: number = 0;
 
     k.add(createBackground())
     k.onUpdate(() => {
         const state = getCurrentState();
         const me = state.me;
+        let shakeOnCD = false;
         
         k.usePostEffect('vhs', () => ({ "u_intensity": 4 }));
 
@@ -37,8 +39,18 @@ k.scene('arena', () => {
                 ? Math.min(me.x, MAP_SIZE - viewWidth / 2 )
                 : Math.max(me.x, viewWidth / 2);
             
+            if (!prevHP) prevHP = me.hp;
+
             k.setCamScale(scale);
             k.setCamPos(x, y);
+            
+            if (prevHP > me.hp && !shakeOnCD){ 
+                shakeOnCD = true;
+                k.shake(10);
+                setTimeout(() => shakeOnCD = false, 1000);
+            }
+
+            prevHP = me.hp;
 
             effects = updateEffects(state, effects);
         }
@@ -147,6 +159,7 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
     return aliveEffects
 }
 
+
 function drawPlayer(player: Player, isMe: boolean) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
@@ -185,7 +198,7 @@ function drawPlayer(player: Player, isMe: boolean) {
         text: player.username,
         font: 'happy',
         size: 20 / scale,
-        color: k.GREEN,
+        color: isMe ? k.GREEN : k.WHITE,
         pos: k.vec2(x, y - 40),
         anchor: 'center'
     })
@@ -294,6 +307,3 @@ function setScale() {
     }
 }
 
-function showPing() {
-    
-}
