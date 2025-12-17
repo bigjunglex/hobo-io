@@ -23,6 +23,8 @@ k.scene('arena', () => {
         const state = getCurrentState();
         const me = state.me;
         
+        k.usePostEffect('vhs', () => ({ "u_intensity": 4 }));
+
         if (me) {
             const viewWidth = canvas.width / scale;
             const viewHeight = canvas.height / scale;
@@ -35,8 +37,9 @@ k.scene('arena', () => {
                 ? Math.min(me.x, MAP_SIZE - viewWidth / 2 )
                 : Math.max(me.x, viewWidth / 2);
             
-            k.setCamScale(scale)
+            k.setCamScale(scale);
             k.setCamPos(x, y);
+
             effects = updateEffects(state, effects);
         }
     })
@@ -45,12 +48,12 @@ k.scene('arena', () => {
         const {me, others, bullets, hazards } = getCurrentState();
 
         if (me) {
-            drawPlayer(me);
+            drawPlayer(me, true);
         }
 
         if (others) {
             for (const p of others) {
-                drawPlayer(p)
+                drawPlayer(p, false)
             }
         }
 
@@ -144,7 +147,7 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
     return aliveEffects
 }
 
-function drawPlayer(player: Player, animState: null|number = null) {
+function drawPlayer(player: Player, isMe: boolean) {
     const { x, y, direction, hp } = player;
     const degrees = k.rad2deg(direction) - 90;
     const flipped = degrees < -90;
@@ -182,6 +185,7 @@ function drawPlayer(player: Player, animState: null|number = null) {
         text: player.username,
         font: 'happy',
         size: 20 / scale,
+        color: k.GREEN,
         pos: k.vec2(x, y - 40),
         anchor: 'center'
     })

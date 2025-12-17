@@ -36,6 +36,9 @@ type SerializedHazard = {
     onCooldown: boolean;
 } & Position;
 
+/**
+ * c = player count
+ */
 type GameState = {
     t: number;
     me: Player;
@@ -43,6 +46,7 @@ type GameState = {
     bullets: SerializedEntity[];
     hazards: SerializedHazard[];
     leaderboard: Score[];
+    c: number;  
 }
 
 type EffectEntry = {
@@ -66,3 +70,21 @@ type SerializedPlayer = SerializedEntity & {
 type GlobalState = Pick<GameState, 'bullets' | 'hazards' | 'leaderboard' | 't'> & { players: SerializedPlayer[] };
 
 type Factory<T> = (...args:any[]) => T
+
+type Bounds = {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+}
+
+type Dimensions = {
+    width: number;
+    height: number;
+}
+
+type Client = {
+    postion: Position;
+    dimensions: Dimensions;
+    indices: null | [number, number][];
+}

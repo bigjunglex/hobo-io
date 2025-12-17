@@ -150,7 +150,8 @@ export class Game {
             others: nearbyPlayers,
             bullets: nearbyBullets,
             hazards: nearbyHazzards,
-            leaderboard: state.leaderboard
+            leaderboard: state.leaderboard,
+            c: Object.keys(this.players).length
         }
     }
 

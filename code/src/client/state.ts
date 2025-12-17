@@ -1,4 +1,4 @@
-import { updateLeaderboard } from "./leaderboard";
+import { updateLeaderboard, updatePlayerCount } from "./leaderboard";
 
 const RENDER_DELAY = 100;
 
@@ -19,6 +19,7 @@ export function processGameUpdate(update: GameState) {
     gameUpdates.push(update);
 
     updateLeaderboard(update.leaderboard);
+    updatePlayerCount(update.c)
     
     const base = getBaseUpdate();
     if (base > 0) gameUpdates.splice(0, base);

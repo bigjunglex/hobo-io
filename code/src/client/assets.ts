@@ -3,6 +3,7 @@ import { k } from "./render";
 export async function loadAssets() {
     const promises = [];
     
+    promises.push(k.loadShaderURL('vhs', null, 'shaders/vhs.frag'));
     promises.push(k.loadSprite('bean', 'bean.png'));
     promises.push(k.loadSprite('gun', 'gun.png'));
     promises.push(k.loadFont('happy', 'happy.ttf'))
@@ -26,6 +27,7 @@ export async function loadAssets() {
             },
         },
     }))
+
     
     return Promise.all(promises);
 }

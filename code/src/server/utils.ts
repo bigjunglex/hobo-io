@@ -1,4 +1,3 @@
-import { throws } from "assert";
 import CONSTANTS from "../shared/constants.js";
 import { Bullet } from "./entities/bullet.js";
 

@@ -1,5 +1,6 @@
 const leaderboard = document.getElementById('leaderboard')!;
 const rows = document.querySelectorAll('#leaderboard table tr');
+const count = document.getElementById('player-count')!;
 
 export function updateLeaderboard(leaderboard: Score[]):void {
     for (let i = 0; i < leaderboard.length; i++) {
@@ -24,4 +25,9 @@ export function setLeaderboardHidden(hidden:boolean):void{
     } else {
         leaderboard.classList.remove('hidden')
     }
+}
+
+
+export function updatePlayerCount(c: number) {
+    count.textContent = '' + c
 }
