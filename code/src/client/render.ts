@@ -45,13 +45,14 @@ k.scene('arena', () => {
             k.setCamPos(x, y);
             
             if (prevHP > me.hp && !shakeOnCD){ 
+                const color = k.Color.fromHex(CONSTANTS.CAMER_FLASH_COLOR)
                 shakeOnCD = true;
-                k.shake(10);
-                setTimeout(() => shakeOnCD = false, 1000);
+                k.shake(7);
+                k.flash(color, 0.05)
+                setTimeout(() => shakeOnCD = false, 3000);
             }
 
             prevHP = me.hp;
-
             effects = updateEffects(state, effects);
         }
     })

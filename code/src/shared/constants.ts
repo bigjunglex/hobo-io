@@ -32,6 +32,7 @@ const CONSTANTS = {
     SCORE_BULLET_HIT: 20,
     SCORE_PER_SECOND: 1,
     
+    CAMER_FLASH_COLOR: '#ff8282',
 } as const;
 
 export default CONSTANTS;
