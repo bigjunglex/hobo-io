@@ -84,7 +84,7 @@ type Dimensions = {
 }
 
 type Client = {
-    postion: Position;
+    position: Position;
     dimensions: Dimensions;
     indices: null | [number, number][];
 }

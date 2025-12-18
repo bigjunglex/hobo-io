@@ -4,7 +4,7 @@ import { Bullet } from "./entities/bullet.js";
 import { type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
+import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, Grid } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createHasteHazzard } from "./entities/hazards/haste.js";
@@ -131,17 +131,18 @@ export class Game {
 
     createUpdate(player: Player, state: GlobalState): GameState {
         const me = state.players.find(p => p.id === player.id)!;
+        const radius = 900 ** 2
         const nearbyPlayers = state.players.filter(
             p => p.id !== me.id &&
-            distanceToSq(p.x, p.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
+            distanceToSq(p.x, p.y, me.x, me.y) <=  radius// CONSTANTS.MAP_SIZE_SQ / 5
         );
 
         const nearbyBullets = state.bullets.filter(
-            b => distanceToSq(b.x, b.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
+            b => distanceToSq(b.x, b.y, me.x, me.y) <= radius //CONSTANTS.MAP_SIZE_SQ / 5
         )
 
         const nearbyHazzards = state.hazards.filter(
-            h => distanceToSq(h.x, h.y, me.x, me.y) <= CONSTANTS.MAP_SIZE_SQ / 2
+            h => distanceToSq(h.x, h.y, me.x, me.y) <= radius// CONSTANTS.MAP_SIZE_SQ / 5
         )
 
         return {

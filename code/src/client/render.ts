@@ -168,11 +168,28 @@ function drawPlayer(player: Player, isMe: boolean) {
 
     if (!isDrawable(x, y)) return;
 
+    
     k.drawSprite({
         sprite: player.sprite,
         pos: k.vec2(x, y),
         anchor: 'center',
     })
+    
+    /**
+     * debug circle
+     */
+    // if (isMe) {
+    //     k.drawCircle({
+    //         pos: k.vec2(x, y),
+    //         radius: 600,
+    //         color: k.BLACK,
+    //         outline: {
+    //             width: 4,
+    //             color: k.GREEN,
+    //             opacity: 1
+    //         }
+    //     })
+    // }
 
     if (player?.effect && player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD) {
         const shieldX = x + 40 * Math.cos(direction - Math.PI / 2); 

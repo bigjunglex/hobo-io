@@ -33,6 +33,17 @@ const CONSTANTS = {
     SCORE_PER_SECOND: 1,
     
     CAMER_FLASH_COLOR: '#ff8282',
+
+    BOUNDS: {
+        maxX: 3000,
+        maxY: 3000,
+        minY: 0,
+        minX: 0,
+    },
+
+    DIMENSIONS: {
+        
+    }
 } as const;
 
 export default CONSTANTS;
