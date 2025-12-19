@@ -96,19 +96,19 @@ export class Game {
             }
         })
 
-        if (this.shouldSendUpdate) {;
+        if (this.shouldSendUpdate) {
             const state = this.serializeState();
-            process.nextTick(() => {
-                Object.keys(this.sockets).forEach(id => {
+            Object.keys(this.sockets).forEach(id => {
                     const socket = this.sockets[id];
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
-                    socket.emit(
-                        CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                        update
+                    process.nextTick(() =>
+                        socket.emit(
+                            CONSTANTS.MSG_TYPES.GAME_UPDATE,
+                            update
+                        )
                     )
                 })
-            })
             this.shouldSendUpdate = false;
         } else {
             this.shouldSendUpdate = true;

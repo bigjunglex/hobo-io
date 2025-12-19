@@ -33,17 +33,23 @@ const CONSTANTS = {
     SCORE_PER_SECOND: 1,
     
     CAMER_FLASH_COLOR: '#ff8282',
+    
 
-    BOUNDS: {
-        maxX: 3000,
-        maxY: 3000,
-        minY: 0,
-        minX: 0,
-    },
+    /**
+     * contanst for spatial hash grid realiztions
+     * but atm biggest bottleneck on performance is player.forEach socket.emit() on update
+     * createUpdate and applyCollision suprisingly low on cpu time, judging from debugger
+     */
+    // BOUNDS: {
+    //     maxX: 3000,
+    //     maxY: 3000,
+    //     minY: 0,
+    //     minX: 0,
+    // },
 
-    DIMENSIONS: {
+    // DIMENSIONS: {
         
-    }
+    // }
 } as const;
 
 export default CONSTANTS;

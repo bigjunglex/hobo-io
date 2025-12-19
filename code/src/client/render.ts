@@ -4,6 +4,7 @@ import CONSTANTS from '../shared/constants';
 import { debounce } from 'throttle-debounce';
 
 let scale = 1;
+let u_intensity = 8;
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
 
@@ -25,7 +26,7 @@ k.scene('arena', () => {
         const me = state.me;
         let shakeOnCD = false;
         
-        k.usePostEffect('vhs', () => ({ "u_intensity": 4 }));
+        k.usePostEffect('vhs', () => ({ "u_intensity": u_intensity }));
 
         if (me) {
             const viewWidth = canvas.width / scale;
@@ -224,6 +225,7 @@ function drawPlayer(player: Player, isMe: boolean) {
     k.drawText({
         text: `${Math.floor(hp)}/${PLAYER_MAX_HP}`,
         font: 'happy',
+        color: isMe ? k.GREEN : k.WHITE,
         size: 12 / scale,
         pos: k.vec2(x, y + 35),
         anchor: 'center'
@@ -312,16 +314,22 @@ function setScale() {
     const w = window.innerWidth;
     if (w < 480) {          
         scale = 0.6;
+        u_intensity = 12;
     } else if (w < 768) {   
         scale = 0.75;
+        u_intensity = 10;
     } else if (w < 1024) {  
         scale = 0.9;
-    } else if (w < 1440) {  
+        u_intensity = 8;
+    } else if (w < 1440) {
+        u_intensity = 6; 
         scale = 1.0;
-    } else if (w < 1920) {  
+    } else if (w < 1920) {
+        u_intensity = 4;  
         scale = 1.15;
     } else {                
         scale = 1.3;
+        u_intensity = 4;
     }
 }
 
