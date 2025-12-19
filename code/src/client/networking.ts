@@ -5,7 +5,11 @@ import customParser from "socket.io-msgpack-parser";
 import { processGameUpdate } from './state';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
-const socket = io(`${socketProtocol}://${window.location.host}`, {reconnection: false, parser: customParser});
+const socket = io(`${socketProtocol}://${window.location.host}`, {
+    transports: ['websocket'],
+    reconnection: false,
+    parser: customParser
+});
 const connected = new Promise<void>(resolve => {
     socket.on('connect', () => {
         console.log('Connected to server!');

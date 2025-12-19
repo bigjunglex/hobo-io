@@ -18,7 +18,8 @@ type RenderState = ReturnType<typeof getCurrentState>
 
 k.scene('arena', () => {
     let effects:EffectEntry[] = [];
-    let prevHP: number = 0;
+    let prevHP = 0;
+    let prevScore = 0;
 
     k.add(createBackground())
     k.onUpdate(() => {
@@ -41,6 +42,7 @@ k.scene('arena', () => {
                 : Math.max(me.x, viewWidth / 2);
             
             if (!prevHP) prevHP = me.hp;
+            if (!prevScore) prevScore = state.score;
 
             k.setCamScale(scale);
             k.setCamPos(x, y);
@@ -54,6 +56,13 @@ k.scene('arena', () => {
             }
 
             prevHP = me.hp;
+
+            if ((state.score - prevScore) > CONSTANTS.SCORE_BULLET_HIT / 2) {
+                drawHitMark(me)
+            }
+
+            prevScore = state.score;
+
             effects = updateEffects(state, effects);
         }
     })
@@ -302,6 +311,25 @@ function isDrawable(x:number, y: number): boolean {
     const yCheck = screenPos.y >= 0 && screenPos.y <= canvas.height;
 
     return xCheck && yCheck
+}
+
+function drawHitMark(me: Player) {
+    const hitMark = k.add([
+        k.pos(me.x, me.y),
+        k.timer(),
+        k.outline(1, k.WHITE, 0.8),
+        k.color(k.YELLOW),
+        k.text("HIT!", {
+            font: 'happy',
+            align: 'center',
+            letterSpacing: 8,
+             transform: (i, ch) => ({
+                pos: k.vec2(0, k.wave(-8, 8, k.time() * 5 * i * 0.5)),
+            })
+        })
+    ])
+
+    hitMark.wait(1.5, () => hitMark.destroy())
 }
 
 /**

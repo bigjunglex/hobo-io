@@ -131,6 +131,7 @@ export class Game {
 
     createUpdate(player: Player, state: GlobalState): GameState {
         const me = state.players.find(p => p.id === player.id)!;
+        const score = this.players[me.id].score;
         const radius = 900 ** 2
         const nearbyPlayers = state.players.filter(
             p => p.id !== me.id &&
@@ -152,7 +153,8 @@ export class Game {
             bullets: nearbyBullets,
             hazards: nearbyHazzards,
             leaderboard: state.leaderboard,
-            c: Object.keys(this.players).length
+            c: Object.keys(this.players).length,
+            score: Math.round(score)
         }
     }
 

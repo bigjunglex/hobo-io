@@ -46,7 +46,8 @@ type GameState = {
     bullets: SerializedEntity[];
     hazards: SerializedHazard[];
     leaderboard: Score[];
-    c: number;  
+    c: number;
+    score: number;  
 }
 
 type EffectEntry = {

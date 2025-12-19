@@ -1,4 +1,4 @@
-import { updateLeaderboard, updatePlayerCount } from "./leaderboard";
+import { updateLeaderboard, updateMyScore, updatePlayerCount } from "./leaderboard";
 
 const RENDER_DELAY = 100;
 
@@ -20,6 +20,7 @@ export function processGameUpdate(update: GameState) {
 
     updateLeaderboard(update.leaderboard);
     updatePlayerCount(update.c)
+    updateMyScore(update.score)
     
     const base = getBaseUpdate();
     if (base > 0) gameUpdates.splice(0, base);
@@ -57,8 +58,9 @@ export function getCurrentState() {
             me: interpolateObject<Player>(baseUpdate.me, next.me, r),
             others: interpolateObjectArray<Player>(baseUpdate.others, next.others, r),
             bullets: interpolateObjectArray<Bullet>(baseUpdate.bullets, next.bullets, r),
-            hazards: baseUpdate.hazards
-        } satisfies Pick<GameState, 'me' | 'bullets' | 'others' | 'hazards'>
+            hazards: baseUpdate.hazards,
+            score: baseUpdate.score
+        } satisfies Pick<GameState, 'me' | 'bullets' | 'others' | 'hazards' | 'score'>
     }
 };
 

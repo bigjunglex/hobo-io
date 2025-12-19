@@ -1,6 +1,8 @@
 const leaderboard = document.getElementById('leaderboard')!;
 const rows = document.querySelectorAll('#leaderboard table tr');
 const count = document.getElementById('player-count')!;
+const score = document.getElementById('my-score')!;
+
 
 export function updateLeaderboard(leaderboard: Score[]):void {
     for (let i = 0; i < leaderboard.length; i++) {
@@ -29,5 +31,9 @@ export function setLeaderboardHidden(hidden:boolean):void{
 
 
 export function updatePlayerCount(c: number) {
-    count.textContent = '' + c
+    count.textContent = '' + c;
+}
+
+export function updateMyScore(s:number) {
+    score.textContent = '' + s;
 }
