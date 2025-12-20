@@ -16,12 +16,12 @@ function shieldEffect(this:Hazard, player: Player) {
         player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         player.fireCooldown = 0;
         player.effect = undefined;
-    }, 7000)
+    }, CONSTANTS.HAZARD_SHIELD_DURATION)
 
     setTimeout(() => {
         this.onCooldown = false;
         this.reposition();
-    }, 7000)
+    }, CONSTANTS.HAZARD_SHIELD_DURATION)
 }
 
 

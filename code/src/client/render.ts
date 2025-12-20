@@ -2,9 +2,11 @@ import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState } from './state';
 import CONSTANTS from '../shared/constants';
 import { debounce } from 'throttle-debounce';
+import { getSoundState } from './settings';
 
 let scale = 1;
 let u_intensity = 8;
+
 const canvas = document.getElementById('game') as HTMLCanvasElement;
 const { PLAYER_MAX_HP, BULLET_RADIUS, MAP_SIZE } = CONSTANTS;
 
@@ -50,6 +52,11 @@ k.scene('arena', () => {
             if (prevHP > me.hp && !shakeOnCD){ 
                 const color = k.Color.fromHex(CONSTANTS.CAMER_FLASH_COLOR)
                 shakeOnCD = true;
+
+                if (getSoundState()) {
+                    k.play('hurt');
+                }
+
                 k.shake(7);
                 k.flash(color, 0.05)
                 setTimeout(() => shakeOnCD = false, 3000);
@@ -58,7 +65,11 @@ k.scene('arena', () => {
             prevHP = me.hp;
 
             if ((state.score - prevScore) > CONSTANTS.SCORE_BULLET_HIT / 2) {
-                drawHitMark(me)
+                if (getSoundState()) {
+                    k.play('hit');
+                }
+
+                drawHitMark(me);
             }
 
             prevScore = state.score;
@@ -136,11 +147,11 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
             k.pos(p.x, p.y),
             'effect'
         ])
-        
+
         const entry: EffectEntry = {
             entityID: p.id,
             type: effect,
-            ref
+            ref,
         }
 
         effects.push(entry);
@@ -185,22 +196,6 @@ function drawPlayer(player: Player, isMe: boolean) {
         anchor: 'center',
     })
     
-    /**
-     * debug circle
-     */
-    // if (isMe) {
-    //     k.drawCircle({
-    //         pos: k.vec2(x, y),
-    //         radius: 600,
-    //         color: k.BLACK,
-    //         outline: {
-    //             width: 4,
-    //             color: k.GREEN,
-    //             opacity: 1
-    //         }
-    //     })
-    // }
-
     if (player?.effect && player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD) {
         const shieldX = x + 40 * Math.cos(direction - Math.PI / 2); 
         const shieldY = y + 40 * Math.sin(direction - Math.PI / 2);
