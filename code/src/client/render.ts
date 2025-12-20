@@ -99,7 +99,7 @@ k.scene('arena', () => {
 
         if (hazards) {
             for (const h of hazards) {
-                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_WEB_SPRITE) {
+                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_WEB_SPRITE || CONSTANTS.HAZARD_FLAME_SPRITE) {
                     drawHazard(h)
                 }
             }

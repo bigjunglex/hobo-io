@@ -9,6 +9,7 @@ import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createShieldHazzard } from "./entities/hazards/shield.js";
+import { createFlameHazzard } from "./entities/hazards/flame.js";
 
 
 export class Game {
@@ -172,9 +173,10 @@ export class Game {
             const web = createWebHazzard(getRandomCoords(), getRandomCoords());
             const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
             const haste = createBoostHazzard(getRandomCoords(), getRandomCoords());
-            const shield = createShieldHazzard(getRandomCoords(), getRandomCoords())
+            const shield = createShieldHazzard(getRandomCoords(), getRandomCoords());
+            const flame = createFlameHazzard(getRandomCoords(), getRandomCoords());
 
-            hazards.push(web, portal, haste, shield)
+            hazards.push(web, portal, haste, shield, flame)
         }
 
         return hazards

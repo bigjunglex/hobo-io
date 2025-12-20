@@ -29,6 +29,7 @@ export async function loadAssets() {
     }))
     promises.push(k.loadSound('hit', 'sounds/bean_voice.wav'));
     promises.push(k.loadSound('hurt', 'sounds/mark_voice.wav'));
+    promises.push(k.loadSprite('flame', 'fire.png'));
 
     
     return Promise.all(promises);

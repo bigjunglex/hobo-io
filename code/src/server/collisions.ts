@@ -22,7 +22,7 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
                     break;
                 } else {
                     destroyedBullets.push(bullet);
-                    player.takeBulletDamage();
+                    player.takeDamage(CONSTANTS.BULLET_DAMAGE);
                     break;
                 }
             }
@@ -50,7 +50,7 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
                     collision.id !== collider.id &&
                     collider.distanceToSq(collision) <= collideRangeMelee
                 ) {
-                    collision.takeMeleeDamage();
+                    collision.takeDamage(CONSTANTS.MELEE_DAMAGE);
                     collider.onDealtDamage();
                 }
             }
