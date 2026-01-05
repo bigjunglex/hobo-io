@@ -25,6 +25,8 @@ const CONSTANTS = {
     FLAME_DAMAGE: 50,
 
     HAZARD_RADIUS: 15,
+    HAZARD_WALL_SIZE: 5,
+
     HAZARD_WEB_SPRITE: 'spider_web',
     HAZARD_PORTAL_SPRITE: 'portal',
     HAZARD_BOOST_SPRITE: 'mushroom',
