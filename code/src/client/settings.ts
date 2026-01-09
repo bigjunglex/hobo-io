@@ -19,5 +19,5 @@ chatBtn.addEventListener('click', () => {
     const isOn = chatStatus.textContent === 'ON';
     chatStatus.textContent = isOn ? 'OFF' : 'ON';
 
-    setChatHidden(!isOn)
+    setChatHidden(isOn)
 })
