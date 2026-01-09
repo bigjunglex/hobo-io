@@ -6,6 +6,8 @@ function shieldEffect(this:Hazard, player: Player) {
     if (this.onCooldown) return;
     this.onCooldown = true;
     
+    player.clearEffectTimeout();
+
     player.speed = CONSTANTS.PLAYER_SPEED * 0.5;
     player.fireRate = 0;
     player.fireCooldown = 7000;

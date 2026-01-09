@@ -18,18 +18,15 @@ const connected = new Promise<void>(resolve => {
     })
 })
 
-const pingSpan = document.getElementById('ping')!; 
-let lastUpdate = Date.now()
+const pingSpan = document.getElementById('ping')!;
+let pingprinter: null|PingPrinter = null;
 
 export const connect = (onGameOver: GameCallback) => (
     connected.then(() => {
-        socket.on(CONSTATANTS.MSG_TYPES.GAME_UPDATE, (update: GameState) => {
+        pingprinter = new PingPrinter(pingSpan);
 
-            const now = performance.now();
-            const ping = now - lastUpdate;
-            lastUpdate = now;
-            pingSpan.textContent = ping.toFixed(2);
-            
+        socket.on(CONSTATANTS.MSG_TYPES.GAME_UPDATE, (update: GameState) => {
+            pingprinter?.addUpdate()
             processGameUpdate(update)
         });
         socket.on(CONSTATANTS.MSG_TYPES.GAME_OVER, onGameOver);
@@ -56,4 +53,32 @@ export const updateDirection = throttle(20, (dir:number) => {
 
 export const sendMessage = (message: string) => {
     socket.emit(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, message)
+}
+
+
+class PingPrinter {
+    private deltas: number[];
+    private lastUpdate: number;
+    private target: HTMLElement; 
+
+    constructor(target: HTMLElement) {
+        this.deltas = [];
+        this.lastUpdate = performance.now();
+        this.target = target;
+    }
+
+    addUpdate() {
+        const now = performance.now();
+        const dt = now - this.lastUpdate;
+        this.lastUpdate = now;
+        this.deltas.push(dt);
+        if (this.deltas.length > 30) this.setPing(); 
+    }
+
+    setPing() {
+        const len = this.deltas.length;
+        const average = (this.deltas.reduce((a, v) => a + v, 0) / len).toFixed(2);
+        this.target.textContent = average;
+        this.deltas = [];
+    }
 }
