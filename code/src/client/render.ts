@@ -302,8 +302,8 @@ function drawBullet(bullet: Bullet | SerializedEntity) {
  */
 function isDrawable(x:number, y: number): boolean {
     const screenPos = k.toScreen(k.vec2(x,y));
-    const xCheck = screenPos.x >= 0 && screenPos.x <= canvas.width; 
-    const yCheck = screenPos.y >= 0 && screenPos.y <= canvas.height;
+    const xCheck = screenPos.x >= 0 - 64 && screenPos.x <= canvas.width + 64; 
+    const yCheck = screenPos.y >= 0 - 64 && screenPos.y <= canvas.height + 64;
 
     return xCheck && yCheck
 }
