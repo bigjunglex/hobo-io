@@ -3,7 +3,8 @@ const CONSTANTS = {
         GAME_UPDATE: 'udpate',
         GAME_OVER: 'dead',
         INPUT: 'input',
-        JOIN_GAME: 'join_game'
+        JOIN_GAME: 'join_game',
+        CHAT_MESSAGE: 'chat_message',
     },
     
     MAP_SIZE:3000,

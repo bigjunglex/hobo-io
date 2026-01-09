@@ -5,6 +5,7 @@ import { connect, play } from './networking';
 import { startRendering, stopRendering } from './render';
 import { loadAssets } from './assets';
 import { initState } from './state';
+import { setChatHidden } from './chat';
 
 
 const playMenu = document.getElementById('play-menu')!;
@@ -26,6 +27,7 @@ Promise.all([
         initState();
         startCapturingInput();
         setLeaderboardHidden(false);
+        setChatHidden(false);
         startRendering();
     }
 })

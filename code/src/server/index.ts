@@ -40,11 +40,12 @@ io.on('connection', (socket) => {
 
     socket.on(CONSTANTS.MSG_TYPES.JOIN_GAME, joinGame)
     socket.on(CONSTANTS.MSG_TYPES.INPUT, handleInput)
+    socket.on(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, handleChat)
     socket.on('disconnect', onDisconnect)
 
 })
 
-const game = new Game();
+const game = new Game(io);
 
 
 function joinGame(this: Socket, username: string, sprite: string): void {
@@ -54,8 +55,12 @@ function handleInput(this: Socket, dir: number): void {
     game.handleInput(this, dir);
 }
 
+function handleChat(this: Socket, message: string): void {
+    console.log(message)
+    game.chatMessage(this, message)
+}
+
 function onDisconnect(this: Socket, reason: DisconnectReason, description?: any): void {
     game.removePlayer(this);
     console.log('[DISCONNECT]:', reason, this.id)
 }
-

@@ -1,7 +1,7 @@
 import CONSTANTS from "../shared/constants.js";
 import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
-import { type Socket } from "socket.io";
+import { Server, type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
 import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, Grid } from "./utils.js";
@@ -20,8 +20,10 @@ export class Game {
     private shouldSendUpdate: boolean;
     private hazards: Hazard[];
     private bulletPool: BulletPool;
+    private io: Server;
 
-    constructor() {
+    constructor(io: Server) {
+        this.io = io;
         this.sockets = {};
         this.players = {};
         this.bullets = [];
@@ -181,4 +183,11 @@ export class Game {
 
         return hazards
     }
+
+    chatMessage(socket:Socket, message: string) {
+        const username = this.players[socket.id].username;
+        const time = Date.now();
+        
+        this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+    }   
 }

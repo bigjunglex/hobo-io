@@ -89,3 +89,15 @@ type Client = {
     dimensions: Dimensions;
     indices: null | [number, number][];
 }
+
+type ChatForm = HTMLFormElement & { 
+    elements: {
+        message: HTMLInputElement
+    } 
+}
+
+type ChatMessage = {
+    username: string;
+    message: string;
+    time: number;
+}
