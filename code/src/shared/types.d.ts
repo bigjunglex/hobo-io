@@ -101,3 +101,5 @@ type ChatMessage = {
     message: string;
     time: number;
 }
+
+type NotifyMessage = Omit<ChatMessage, 'message'>

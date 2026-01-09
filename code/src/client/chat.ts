@@ -19,19 +19,39 @@ function submitMessage(event: SubmitEvent) {
 }
 
 export function onChatMessage(data: ChatMessage) {
-    const { username, message, time } = data;
-    const t = new Intl.DateTimeFormat('default', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false,
-    }).format(new Date(time));
-
-
+    let { username, message, time } = data;
+    const t = formatTime(time);
+    if (!username) username = 'Anonymous';
+    
     const msgEl = document.createElement('li');
     msgEl.innerText = `[${t}] ${username}: ${message}`
     msgList.appendChild(msgEl)
     msgEl.scrollIntoView({ block: 'end', behavior: 'instant' })
+}
+
+export function onJoinNotify(data: NotifyMessage) {
+    let { username, time } = data;
+    const t = formatTime(time);
+    if (!username) username = 'Anonymous';
+
+    const notifEl = document.createElement('li');
+    notifEl.innerText = `[${t}] ${username} HAS JOINED`;
+    notifEl.classList.add('notification');
+    msgList.appendChild(notifEl);
+    notifEl.scrollIntoView({ block: 'end', behavior: 'instant' })
+}
+
+export function onLeftNotify(data: NotifyMessage) {
+    let { username, time } = data;
+    const t = formatTime(time);
+    if (!username) username = 'Anonymous';
+
+    const notifEl = document.createElement('li');
+    notifEl.innerText = `[${t}] ${username} HAS LEFT`;
+    notifEl.classList.add('notification');
+    msgList.appendChild(notifEl);
+    notifEl.scrollIntoView({ block: 'end', behavior: 'instant' })
+
 }
 
 export function setChatHidden(hidden: boolean): void {
@@ -40,4 +60,16 @@ export function setChatHidden(hidden: boolean): void {
     } else {
         chat.classList.remove('hidden')
     }
+}
+
+
+function formatTime(time: number): string {
+    const t = new Intl.DateTimeFormat('default', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+    }).format(new Date(time));
+
+    return t
 }

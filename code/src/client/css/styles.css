@@ -179,6 +179,9 @@ button:focus {
     margin-bottom: 10px;
 }
 
+.notification {
+    color: orangered;
+}
 
 .sprite-card {
     position: relative;

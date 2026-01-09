@@ -39,12 +39,20 @@ export class Game {
 
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
+        const time = Date.now();
         this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
+
+        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
     }
 
     removePlayer( socket: Socket ) {
+        const username = this.players[socket.id]?.username ?? '';
+        const time = Date.now()
+
         delete this.sockets[socket.id];
         delete this.players[socket.id];
+
+        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
     }
 
     handleInput(socket: Socket, dir: number) {
@@ -189,5 +197,6 @@ export class Game {
         const time = Date.now();
         
         this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
-    }   
+    }
+    
 }

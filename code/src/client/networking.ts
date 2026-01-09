@@ -3,7 +3,7 @@ import { throttle } from 'throttle-debounce';
 import CONSTATANTS from '../shared/constants';
 import customParser from "socket.io-msgpack-parser";
 import { processGameUpdate } from './state';
-import { onChatMessage } from './chat';
+import { onChatMessage, onJoinNotify, onLeftNotify } from './chat';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = io(`${socketProtocol}://${window.location.host}`, {
@@ -33,7 +33,9 @@ export const connect = (onGameOver: GameCallback) => (
             processGameUpdate(update)
         });
         socket.on(CONSTATANTS.MSG_TYPES.GAME_OVER, onGameOver);
-        socket.on(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, onChatMessage)
+        socket.on(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, onChatMessage);
+        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_JOIN, onJoinNotify);
+        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_LEFT, onLeftNotify)
         socket.on('disconnect', () => {
             console.log('Disconnected from server');
             document.getElementById('disconnect-modal')?.classList.remove('hidden');

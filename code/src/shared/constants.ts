@@ -5,6 +5,8 @@ const CONSTANTS = {
         INPUT: 'input',
         JOIN_GAME: 'join_game',
         CHAT_MESSAGE: 'chat_message',
+        NOTIFY_JOIN: 'notify_join',
+        NOTIFY_LEFT: 'notify_left',
     },
     
     MAP_SIZE:3000,
