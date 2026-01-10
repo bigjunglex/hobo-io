@@ -99,11 +99,14 @@ export class Game {
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))
 
         Object.keys(this.sockets).forEach(id => {
-            const socket = this.sockets[id];
+            // const socket = this.sockets[id];
             const player = this.players[id];
             if (player.hp <= 0) {
-                socket.emit(CONSTANTS.MSG_TYPES.GAME_OVER);
-                this.removePlayer(socket);
+                // socket.emit(CONSTANTS.MSG_TYPES.GAME_OVER);
+                // this.removePlayer(socket);
+                const x = getRandomCoordsCenter();
+                const y = getRandomCoordsCenter();
+                player.respawn(x, y)
             }
         })
 
@@ -198,5 +201,4 @@ export class Game {
         
         this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
     }
-    
 }

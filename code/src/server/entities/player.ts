@@ -1,5 +1,4 @@
 import CONSTANTS from "../../shared/constants.js";
-import { Bullet } from "./bullet.js";
 import { Entity } from "./entity.js";
 
 export class Player extends Entity {
@@ -70,6 +69,18 @@ export class Player extends Entity {
             hp: this.hp,
             effect: this.effect,
         }
+    }
+
+    respawn(x:number, y: number) {
+        this.hp = CONSTANTS.PLAYER_MAX_HP;
+        this.fireCooldown = 0;
+        this.score = 0;
+        this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
+        this.effect = undefined;
+        this.effectTimeout = null;
+
+        this.x = x;
+        this.y = y;
     }
 
 }
