@@ -318,7 +318,7 @@ function drawHitMark(me: Player) {
             font: 'happy',
             align: 'center',
             letterSpacing: 8,
-             transform: (i, ch) => ({
+            transform: (i, ch) => ({
                 pos: k.vec2(0, k.wave(-8, 8, k.time() * 5 * i * 0.5)),
             })
         })
@@ -327,6 +327,27 @@ function drawHitMark(me: Player) {
     hitMark.wait(1.5, () => hitMark.destroy())
 }
 
+export function drawEventNotification(event: string) {
+    if (!event || k.getSceneName() !== 'arena') return;
+
+    const note = k.add([
+        k.pos(k.center().add(0, -130)),
+        k.timer(),
+        k.outline(1, k.WHITE, 0.8),
+        k.color(k.MAGENTA),
+        k.text("YOU DIED", {
+            font: 'happy',
+            align: 'center',
+            letterSpacing: 12,
+            transform: (i, ch) => ({
+                pos: k.vec2(0, k.wave(-8, 8, k.time() * 5 * i * 0.5)),
+            })
+        })
+    ])
+
+    note.onUpdate(() => note.pos = k.getCamPos().add(-130, -130));
+    note.wait(2.5, () => note.destroy());
+}
 /**
  * Scaling camera to fix mob devices disandvantage
  * big screen sees whole game > small sees 1 meter from nose

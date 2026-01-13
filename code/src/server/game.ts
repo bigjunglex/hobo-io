@@ -31,7 +31,7 @@ export class Game {
         this.lastUpdateTime = Date.now();
         this.shouldSendUpdate = false;
         this.bulletPool = new BulletPool();
-        setInterval(this.update.bind(this), 1000 / 40);
+        setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
     }
 
     addPlayer( socket:Socket, username: string, sprite: string ) {
@@ -99,7 +99,7 @@ export class Game {
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))
 
         Object.keys(this.sockets).forEach(id => {
-            // const socket = this.sockets[id];
+            const socket = this.sockets[id];
             const player = this.players[id];
             if (player.hp <= 0) {
                 // socket.emit(CONSTANTS.MSG_TYPES.GAME_OVER);
@@ -107,6 +107,7 @@ export class Game {
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
                 player.respawn(x, y)
+                socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
         })
 
@@ -182,14 +183,18 @@ export class Game {
     generateHazards(): Hazard[] {
         const hazards: Hazard[] = []
 
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < CONSTANTS.BASE_HAZARD_COUNT; i++) {
             const web = createWebHazzard(getRandomCoords(), getRandomCoords());
-            const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
-            const haste = createBoostHazzard(getRandomCoords(), getRandomCoords());
-            const shield = createShieldHazzard(getRandomCoords(), getRandomCoords());
             const flame = createFlameHazzard(getRandomCoords(), getRandomCoords());
+            
+            if (i % 2 === 0) {
+                const haste = createBoostHazzard(getRandomCoords(), getRandomCoords());
+                const shield = createShieldHazzard(getRandomCoords(), getRandomCoords());
+                const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
+                hazards.push(portal, haste, shield);
+            }
 
-            hazards.push(web, portal, haste, shield, flame)
+            hazards.push(web, flame);
         }
 
         return hazards

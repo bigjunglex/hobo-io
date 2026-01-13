@@ -103,3 +103,5 @@ type ChatMessage = {
 }
 
 type NotifyMessage = Omit<ChatMessage, 'message'>
+
+type GameEvent = 'death' | 'web weather' | 'fire formation' | 'mushroom monday'

@@ -7,6 +7,7 @@ const CONSTANTS = {
         CHAT_MESSAGE: 'chat_message',
         NOTIFY_JOIN: 'notify_join',
         NOTIFY_LEFT: 'notify_left',
+        NOTIFY_EVENT: 'notify_event',
     },
     
     MAP_SIZE:3000,
@@ -26,6 +27,8 @@ const CONSTANTS = {
     BULLET_DAMAGE: 10,
     MELEE_DAMAGE: 30,
     FLAME_DAMAGE: 50,
+
+    BASE_HAZARD_COUNT: 10,
 
     HAZARD_RADIUS: 15,
     HAZARD_WALL_SIZE: 5,
