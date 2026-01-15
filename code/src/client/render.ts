@@ -335,7 +335,7 @@ export function drawEventNotification(event: string) {
         k.timer(),
         k.outline(1, k.WHITE, 0.8),
         k.color(k.MAGENTA),
-        k.text("YOU DIED", {
+        k.text(event, {
             font: 'happy',
             align: 'center',
             letterSpacing: 12,

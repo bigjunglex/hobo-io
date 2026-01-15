@@ -10,7 +10,9 @@ import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createShieldHazzard } from "./entities/hazards/shield.js";
 import { createFlameHazzard } from "./entities/hazards/flame.js";
+import { slowdownEvent } from "./events.js";
 
+type EffectApplicator = (p: Player) => void; 
 
 export class Game {
     private sockets: Record<string, Socket>;
@@ -21,6 +23,8 @@ export class Game {
     private hazards: Hazard[];
     private bulletPool: BulletPool;
     private io: Server;
+    private effectApplicator: EffectApplicator|null;
+    private currentEvent: string|null;
 
     constructor(io: Server) {
         this.io = io;
@@ -31,7 +35,11 @@ export class Game {
         this.lastUpdateTime = Date.now();
         this.shouldSendUpdate = false;
         this.bulletPool = new BulletPool();
+        this.effectApplicator = null;
+        this.currentEvent = null;
+
         setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
+        setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
 
     addPlayer( socket:Socket, username: string, sprite: string ) {
@@ -41,6 +49,11 @@ export class Game {
         const y = getRandomCoordsCenter();
         const time = Date.now();
         this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
+
+        if (this.effectApplicator && this.currentEvent) {
+            this.effectApplicator(this.players[socket.id]);
+            socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
+        }
 
         this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
     }
@@ -205,5 +218,33 @@ export class Game {
         const time = Date.now();
         
         this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+    }
+
+    playerEffectEvent(applicator: EffectApplicator, remover: EffectApplicator, t: number, eventName: string) {
+        this.currentEvent = eventName;
+        this.effectApplicator = applicator;
+        
+        for (const p of Object.values(this.players)) {
+            applicator(p)
+        }
+
+        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+
+        setTimeout(() => {
+            for (const p of Object.values(this.players)) {
+                remover(p)
+            }
+            this.effectApplicator = null;
+            this.currentEvent = null;
+        }, t)
+    }
+
+    /**
+     * slowdown for now
+     */
+    useRngEffect() {
+        const eventName = 'SLOW DOWN'
+        const [applicator, remover, t] = slowdownEvent();
+        this.playerEffectEvent(applicator, remover, t, eventName);
     }
 }

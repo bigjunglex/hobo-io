@@ -9,12 +9,18 @@ export function getRandomCoordsCenter(): number {
     return CONSTANTS.MAP_SIZE * (0.25 + Math.random() * 0.5);
 }
 
+/**
+ * moving from Math.sqrt spam saved perf big time
+ */
 export function distanceToSq(fx: number, fy:number, tx: number, ty: number) {
     const dx = fx - tx;
     const dy = fy - ty;
     return dx * dx + dy * dy;
 }
 
+/**
+ * big performance boost on test vps
+ */
 export class BulletPool {
     private pool: Bullet[];
 
@@ -43,7 +49,7 @@ export class BulletPool {
 }
 
 /**
- * no big diff, on VPS main bottleneck is emit
+ * no big diff, on VPS main bottleneck is sync socket.emit
  * ---> get rid of socket io
  *  OR
  * ----> group broadcasts? bad idea prob, i need to find all entities near
