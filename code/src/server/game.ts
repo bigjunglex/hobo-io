@@ -10,9 +10,10 @@ import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createShieldHazzard } from "./entities/hazards/shield.js";
 import { createFlameHazzard } from "./entities/hazards/flame.js";
-import { slowdownEvent } from "./events.js";
+import { fireFormationEvent, portalProphecyEvent, slowdownEvent, webwarpEvent } from "./events.js";
 
 type EffectApplicator = (p: Player) => void; 
+type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
     private sockets: Record<string, Socket>;
@@ -239,12 +240,40 @@ export class Game {
         }, t)
     }
 
-    /**
-     * slowdown for now
-     */
+    hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
+        const hazards = [ ...this.hazards ];
+        transformer(this.hazards);
+        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        setTimeout(() => this.hazards = hazards, t);
+    }
+
     useRngEffect() {
-        const eventName = 'SLOW DOWN'
-        const [applicator, remover, t] = slowdownEvent();
-        this.playerEffectEvent(applicator, remover, t, eventName);
+        const number = Math.floor(Math.random() * 4) + 1;
+        switch (number) {
+            case 1: {
+                const eventName = 'SLOW DOWN'
+                const [applicator, remover, t] = slowdownEvent();
+                this.playerEffectEvent(applicator, remover, t, eventName);
+                break;
+            }
+            case 2: {
+                const eventName = 'WEB WARP'
+                const [transformer, t] = webwarpEvent(); 
+                this.hazardEffectEvent(transformer, t, eventName)
+                break;
+            }
+            case 3: {
+                const eventName = 'FIRE FORMATION'
+                const [transformer, t] = fireFormationEvent(); 
+                this.hazardEffectEvent(transformer, t, eventName)
+                break;
+            }
+            case 4: {
+                const eventName = 'PORTAL PROPHECY'
+                const [transformer, t] = portalProphecyEvent(); 
+                this.hazardEffectEvent(transformer, t, eventName)
+                break;
+            }
+        }
     }
 }

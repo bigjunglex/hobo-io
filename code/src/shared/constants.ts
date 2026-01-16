@@ -48,7 +48,8 @@ const CONSTANTS = {
     CAMER_FLASH_COLOR: '#ff8282',
     
     EVENTS_DURATION: {
-        SLOWDOWN: 8000,
+        PLAYERS: 8000,
+        HAZARDS: 10_000
     }
 
     /**
