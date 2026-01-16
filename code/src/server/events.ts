@@ -8,6 +8,8 @@ import { getRandomCoords } from "./utils.js";
 
 type EffectApplicator = (p: Player) => void;
 type HazardTransformer = (hazards: Hazard[]) => void;
+type HazardFactory = typeof createFlameHazzard;
+
 /**
  * 
  * @returns [ applicator, remover, duration ]
@@ -35,36 +37,28 @@ export function slowdownEvent(): [EffectApplicator, EffectApplicator, number] {
  */
 export function webwarpEvent(): [HazardTransformer, number] {
     const t = CONSTANTS.EVENTS_DURATION.HAZARDS
-    const transformer:HazardTransformer = (h) => {
-        for (let i = 0; i < 100; i++) {
-            const x = getRandomCoords();
-            const y = getRandomCoords();
-            h.push(createWebHazzard(x, y));
-        }
-    }
+    const transformer = createTransformer(createWebHazzard)
     return [transformer, t]
 }
 
 export function fireFormationEvent(): [HazardTransformer, number] {
     const t = CONSTANTS.EVENTS_DURATION.HAZARDS
-    const transformer:HazardTransformer = (h) => {
-        for (let i = 0; i < 100; i++) {
-            const x = getRandomCoords();
-            const y = getRandomCoords();
-            h.push(createFlameHazzard(x, y));
-        }
-    }
+    const transformer = createTransformer(createFlameHazzard)
     return [transformer, t]
 }
 
 export function portalProphecyEvent(): [HazardTransformer, number] {
     const t = CONSTANTS.EVENTS_DURATION.HAZARDS
-    const transformer: HazardTransformer = (h) => {
+    const transformer = createTransformer(createPortalHazzard)
+    return [transformer, t]
+}
+
+function createTransformer(factory: HazardFactory): HazardTransformer {
+    return function (h) {
         for (let i = 0; i < 100; i++) {
             const x = getRandomCoords();
             const y = getRandomCoords();
-            h.push(createPortalHazzard(x,y));
+            h.push(factory(x, y));
         }
     }
-    return [transformer, t]
 }
