@@ -1,7 +1,9 @@
 import CONSTANTS from "../shared/constants.js";
 import { Hazard } from "./entities/hazard.js";
 import { createFlameHazzard } from "./entities/hazards/flame.js";
+import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
+import { createShieldHazzard } from "./entities/hazards/shield.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { Player } from "./entities/player.js";
 import { getRandomCoords } from "./utils.js";
@@ -17,6 +19,7 @@ type HazardFactory = typeof createFlameHazzard;
 export function slowdownEvent(): [EffectApplicator, EffectApplicator, number] {
     const t = CONSTANTS.EVENTS_DURATION.PLAYERS;
     const applicator: EffectApplicator = (p) => {
+        if (p.effectTimeout) clearTimeout(p.effectTimeout);
         p.speed = CONSTANTS.PLAYER_SPEED / 4;
         p.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN * 4;
     }
@@ -50,6 +53,18 @@ export function fireFormationEvent(): [HazardTransformer, number] {
 export function portalProphecyEvent(): [HazardTransformer, number] {
     const t = CONSTANTS.EVENTS_DURATION.HAZARDS
     const transformer = createTransformer(createPortalHazzard)
+    return [transformer, t]
+}
+
+export function mushroomMadnessEvent(): [HazardTransformer, number] {
+    const t = CONSTANTS.EVENTS_DURATION.HAZARDS
+    const transformer = createTransformer(createBoostHazzard)
+    return [transformer, t]
+}
+
+export function shieldSlamEvent(): [HazardTransformer, number] {
+    const t = CONSTANTS.EVENTS_DURATION.HAZARDS
+    const transformer = createTransformer(createShieldHazzard)
     return [transformer, t]
 }
 

@@ -10,7 +10,7 @@ import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createShieldHazzard } from "./entities/hazards/shield.js";
 import { createFlameHazzard } from "./entities/hazards/flame.js";
-import { fireFormationEvent, portalProphecyEvent, slowdownEvent, webwarpEvent } from "./events.js";
+import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSlamEvent, slowdownEvent, webwarpEvent } from "./events.js";
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
@@ -248,7 +248,7 @@ export class Game {
     }
 
     useRngEffect() {
-        const number = Math.floor(Math.random() * 4) + 1;
+        const number = Math.floor(Math.random() * 6) + 1;
         switch (number) {
             case 1: {
                 const eventName = 'SLOW DOWN'
@@ -271,6 +271,18 @@ export class Game {
             case 4: {
                 const eventName = 'PORTAL PROPHECY'
                 const [transformer, t] = portalProphecyEvent(); 
+                this.hazardEffectEvent(transformer, t, eventName)
+                break;
+            }
+            case 5: {
+                const eventName = 'MUSHROOM MADNESS'
+                const [transformer, t] = mushroomMadnessEvent(); 
+                this.hazardEffectEvent(transformer, t, eventName)
+                break;
+            }
+            case 6: {
+                const eventName = 'SHIELD SLAM'
+                const [transformer, t] = shieldSlamEvent(); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }

@@ -11,7 +11,7 @@ function hasteEffect(this:Hazard, player: Player) {
     player.speed = CONSTANTS.PLAYER_SPEED * 1.5;
     player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN / 2;
     player.effect = CONSTANTS.PLAYER_EFFECT_BOOST;
-    
+    player.hp += CONSTANTS.HAZARD_BOOST_HEAL;   
 
     const effectTimeout = setTimeout(() => {
         player.speed = CONSTANTS.PLAYER_SPEED;
