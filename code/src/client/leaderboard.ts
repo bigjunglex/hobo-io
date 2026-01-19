@@ -2,6 +2,7 @@ const leaderboard = document.getElementById('leaderboard')!;
 const rows = document.querySelectorAll('#leaderboard table tr');
 const count = document.getElementById('player-count')!;
 const score = document.getElementById('my-score')!;
+const allTimeRows = document.querySelectorAll('#topscores tr');
 
 
 export function updateLeaderboard(leaderboard: Score[]):void {
@@ -38,6 +39,11 @@ export function updateMyScore(s:number) {
     score.textContent = '' + s;
 }
 
-export function topScores(data: Score[]) {
-    console.log(data)
+export function topScores(data: ScoreData[]) {
+    for (let i = 0; i < data.length; i++) {
+        const name = `<td>${escapeHtml(data[i].name.slice(0, 15))}</td>`
+        const score = `<td>${data[i].score.toFixed(0)}</td>`
+        const time = `<td>${data[i].date.split(' ')[0]}</td>`
+        allTimeRows[i + 1].innerHTML = `${name}${score}${time}`
+    }
 }
