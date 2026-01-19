@@ -8,6 +8,7 @@ const CONSTANTS = {
         NOTIFY_JOIN: 'notify_join',
         NOTIFY_LEFT: 'notify_left',
         NOTIFY_EVENT: 'notify_event',
+        TOP_SCORES: 'top_scores',
     },
     
     MAP_SIZE:3000,

@@ -2,3 +2,4 @@ code/node_modules/
 code/.env
 code/dist/
 code/dist-client/
+code/*.db

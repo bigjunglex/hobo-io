@@ -37,3 +37,7 @@ export function updatePlayerCount(c: number) {
 export function updateMyScore(s:number) {
     score.textContent = '' + s;
 }
+
+export function topScores(data: Score[]) {
+    console.log(data)
+}

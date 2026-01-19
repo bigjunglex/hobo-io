@@ -10,6 +10,7 @@ import expressify from "uwebsockets-express";
 import CONSTANTS from "../shared/constants.js";
 import { type DisconnectReason, Server, Socket } from "socket.io";
 import { Game } from './game.js'
+import { getRunner } from "./database/connect.js";
 
 const PORT = 7878;
 const uWSapp = App();
@@ -35,6 +36,8 @@ io.attachApp(uWSapp);
 
 io.engine.on('connection', (rawSocket) => rawSocket.request = null)
 
+const game = new Game(io);
+
 io.on('connection', (socket) => {
     console.log('Player connected!', socket.id);
 
@@ -42,15 +45,16 @@ io.on('connection', (socket) => {
     socket.on(CONSTANTS.MSG_TYPES.INPUT, handleInput)
     socket.on(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, handleChat)
     socket.on('disconnect', onDisconnect)
+    
+    socket.emit(CONSTANTS.MSG_TYPES.TOP_SCORES, game.getTopScores())
 
 })
-
-const game = new Game(io);
 
 
 function joinGame(this: Socket, username: string, sprite: string): void {
     game.addPlayer(this, username, sprite);
 }
+
 function handleInput(this: Socket, dir: number): void {
     game.handleInput(this, dir);
 }

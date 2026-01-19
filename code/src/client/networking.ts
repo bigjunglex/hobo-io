@@ -5,6 +5,7 @@ import customParser from "socket.io-msgpack-parser";
 import { processGameUpdate } from './state';
 import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
+import { topScores } from './leaderboard';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = io(`${socketProtocol}://${window.location.host}`, {
@@ -30,11 +31,14 @@ export const connect = (onGameOver: GameCallback) => (
             pingprinter?.addUpdate()
             processGameUpdate(update)
         });
+        
         socket.on(CONSTATANTS.MSG_TYPES.GAME_OVER, onGameOver);
         socket.on(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, onChatMessage);
         socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_JOIN, onJoinNotify);
-        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_LEFT, onLeftNotify)
-        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_EVENT, drawEventNotification)
+        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_LEFT, onLeftNotify);
+        socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_EVENT, drawEventNotification);
+        socket.on(CONSTATANTS.MSG_TYPES.TOP_SCORES, topScores)
+
         socket.on('disconnect', () => {
             console.log('Disconnected from server');
             document.getElementById('disconnect-modal')?.classList.remove('hidden');

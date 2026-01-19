@@ -11,6 +11,8 @@ import { createBoostHazzard } from "./entities/hazards/haste.js";
 import { createShieldHazzard } from "./entities/hazards/shield.js";
 import { createFlameHazzard } from "./entities/hazards/flame.js";
 import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSlamEvent, slowdownEvent, webwarpEvent } from "./events.js";
+import { DbRunner } from "./database/db-runner.js";
+import { getRunner } from "./database/connect.js";
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
@@ -26,6 +28,7 @@ export class Game {
     private io: Server;
     private effectApplicator: EffectApplicator|null;
     private currentEvent: string|null;
+    private db: DbRunner;
 
     constructor(io: Server) {
         this.io = io;
@@ -38,6 +41,7 @@ export class Game {
         this.bulletPool = new BulletPool();
         this.effectApplicator = null;
         this.currentEvent = null;
+        this.db = getRunner();
 
         setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
@@ -116,10 +120,11 @@ export class Game {
             const socket = this.sockets[id];
             const player = this.players[id];
             if (player.hp <= 0) {
-                // socket.emit(CONSTANTS.MSG_TYPES.GAME_OVER);
-                // this.removePlayer(socket);
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
+                this.db.insertScore(player.score, player.username);
+                const top = this.db.getTopScores();
+                console.log(top)
                 player.respawn(x, y)
                 socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
@@ -219,6 +224,10 @@ export class Game {
         const time = Date.now();
         
         this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+    }
+
+    getTopScores() {
+        return this.db.getTopScores();
     }
 
     playerEffectEvent(applicator: EffectApplicator, remover: EffectApplicator, t: number, eventName: string) {
