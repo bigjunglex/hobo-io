@@ -28,6 +28,6 @@ function shieldEffect(this:Hazard, player: Player) {
 
 export function createShieldHazzard(x:number, y: number) {
     const id = crypto.randomUUID().substring(0, 6);
-    const sprite = CONSTANTS.HAZARD_SHIELD_SPRITE;
+    const sprite = CONSTANTS.HAZARD_SPRITES[3];
     return new Hazard(id, x, y, shieldEffect, sprite);
 }

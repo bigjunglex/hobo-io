@@ -123,8 +123,6 @@ export class Game {
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
                 this.db.insertScore(player.score, player.username);
-                const top = this.db.getTopScores();
-                console.log(top)
                 player.respawn(x, y)
                 socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
@@ -180,6 +178,8 @@ export class Game {
             h => distanceToSq(h.x, h.y, me.x, me.y) <= radius// CONSTANTS.MAP_SIZE_SQ / 5
         )
 
+
+
         return {
             t: Date.now(),
             me: me,
@@ -191,6 +191,7 @@ export class Game {
             score: Math.round(score)
         }
     }
+
 
     getLeaderboard(): Score[] {
         return Object.values(this.players)

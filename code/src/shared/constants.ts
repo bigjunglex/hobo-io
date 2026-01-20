@@ -34,12 +34,6 @@ const CONSTANTS = {
     HAZARD_RADIUS: 15,
     HAZARD_WALL_SIZE: 5,
 
-    HAZARD_WEB_SPRITE: 'spider_web',
-    HAZARD_PORTAL_SPRITE: 'portal',
-    HAZARD_BOOST_SPRITE: 'mushroom',
-    HAZARD_SHIELD_SPRITE: 'steel',
-    HAZARD_FLAME_SPRITE: 'flame',
-
     HAZARD_BOOST_HEAL: 200,
 
     HAZARD_BOOST_DURATION: 3000,
@@ -53,7 +47,25 @@ const CONSTANTS = {
     EVENTS_DURATION: {
         PLAYERS: 8000,
         HAZARDS: 10_000
-    }
+    },
+
+    /**
+     * 0 - bean
+     * 1 - mark
+     * 2 - ghosty
+     * 3 - zombean
+     */
+    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'],
+    /**
+     * 0 - mushroom
+     * 1 - portal
+     * 2 - web
+     * 3 - steel
+     * 4 - flame
+     */
+    HAZARD_SPRITES: ['mushroom', 'portal', 'spider_web', 'steel', 'flame'],
+    
+    
 
     /**
      * contanst for spatial hash grid realiztions

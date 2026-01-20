@@ -99,7 +99,7 @@ k.scene('arena', () => {
 
         if (hazards) {
             for (const h of hazards) {
-                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_WEB_SPRITE || h.sprite === CONSTANTS.HAZARD_FLAME_SPRITE) {
+                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_SPRITES[2] || h.sprite === CONSTANTS.HAZARD_SPRITES[4]) {
                     drawHazard(h)
                 }
             }
@@ -191,7 +191,7 @@ function drawPlayer(player: Player, isMe: boolean) {
 
     
     k.drawSprite({
-        sprite: player.sprite,
+        sprite: CONSTANTS.PLAYER_SPRITES[+player.sprite],
         pos: k.vec2(x, y),
         anchor: 'center',
     })
@@ -238,7 +238,7 @@ function drawPlayer(player: Player, isMe: boolean) {
 
 function drawHazard(hazard: SerializedHazard) {
     if (!isDrawable(hazard.x, hazard.y)) return;
-    const scale = hazard.sprite === CONSTANTS.HAZARD_SHIELD_SPRITE ? 0.6 : 1;
+    const scale = hazard.sprite === CONSTANTS.HAZARD_SPRITES[3] ? 0.6 : 1;
     k.drawSprite({
         sprite: hazard.sprite,
         anchor: 'center',

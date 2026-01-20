@@ -30,7 +30,7 @@ function hasteEffect(this:Hazard, player: Player) {
 
 export function createBoostHazzard(x:number, y: number) {
     const id = crypto.randomUUID().substring(0, 6);
-    const sprite = CONSTANTS.HAZARD_BOOST_SPRITE;
+    const sprite = CONSTANTS.HAZARD_SPRITES[0];
     return new Hazard(id, x, y, hasteEffect, sprite);
 }
 

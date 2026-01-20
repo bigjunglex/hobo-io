@@ -15,6 +15,6 @@ function flameEffect(this:Hazard, player: Player) {
 
 export function createFlameHazzard(x:number, y: number) {
     const id = crypto.randomUUID().substring(0, 6);
-    const sprite = CONSTANTS.HAZARD_FLAME_SPRITE;
+    const sprite = CONSTANTS.HAZARD_SPRITES[4];
     return new Hazard(id, x, y, flameEffect, sprite)
 }

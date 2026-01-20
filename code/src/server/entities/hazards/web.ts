@@ -18,6 +18,6 @@ function webEffect(this:Hazard, player: Player) {
 
 export function createWebHazzard(x:number, y: number) {
     const id = crypto.randomUUID().substring(0,6);
-    const sprite = CONSTANTS.HAZARD_WEB_SPRITE;
+    const sprite = CONSTANTS.HAZARD_SPRITES[2];
     return new Hazard(id, x, y, webEffect, sprite)
 }
