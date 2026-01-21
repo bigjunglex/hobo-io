@@ -17,7 +17,6 @@ class LoadTester {
     private count:number;
     private sockets: Socket[];
     private stats: Stats;
-    private sprites: string[];
 
     constructor(url: string, count:number) {
         this.url = url;
@@ -30,8 +29,6 @@ class LoadTester {
             gamesOver: 0,
             maxLatency: 0,
         };
-
-        this.sprites = ['zombean', 'bean', 'ghosty', 'mark']
     }
 
     async connectAll() {
@@ -76,7 +73,7 @@ class LoadTester {
         const spriteId = Math.floor(Math.random() * 4)
         const name = 'CPU-' + crypto.randomUUID().substring(0,3);
 
-        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, name, this.sprites[spriteId])
+        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, name, spriteId > 3 ? 3 : spriteId)
         this.sockets.push(socket);
     }
 

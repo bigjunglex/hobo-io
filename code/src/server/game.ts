@@ -50,6 +50,7 @@ export class Game {
     addPlayer( socket:Socket, username: string, sprite: string ) {
         this.sockets[socket.id] = socket;
 
+        console.log(sprite)
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
         const time = Date.now();
