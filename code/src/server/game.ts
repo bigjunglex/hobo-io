@@ -4,7 +4,7 @@ import { Bullet } from "./entities/bullet.js";
 import { Server, type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, Grid } from "./utils.js";
+import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";

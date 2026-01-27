@@ -10,7 +10,6 @@ import expressify from "uwebsockets-express";
 import CONSTANTS from "../shared/constants.js";
 import { type DisconnectReason, Server, Socket } from "socket.io";
 import { Game } from './game.js'
-import { getRunner } from "./database/connect.js";
 
 const PORT = 7878;
 const uWSapp = App();

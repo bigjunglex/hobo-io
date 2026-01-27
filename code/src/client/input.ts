@@ -16,10 +16,10 @@ function handleInput(x: number, y: number) {
     if (me) {
         const mePos = k.vec2(me.x, me.y)
         const anchor = k.toScreen(mePos);
-        const dir = Math.atan2(
+        const dir = +Math.atan2(
             x - anchor.x,
             anchor.y - y
-        )
+        ).toFixed(4);
 
         updateDirection(dir)
     }
