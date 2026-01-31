@@ -36,21 +36,21 @@ export class Game {
         this.players = {};
         this.bullets = [];
         this.hazards = this.generateHazards();
-        this.lastUpdateTime = Date.now();
+        this.lastUpdateTime = performance.now();
         this.shouldSendUpdate = false;
         this.bulletPool = new BulletPool();
         this.effectApplicator = null;
         this.currentEvent = null;
         this.db = getRunner();
 
-        setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
+        // setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
+        this.update();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
 
     addPlayer( socket:Socket, username: string, sprite: string ) {
         this.sockets[socket.id] = socket;
 
-        console.log(sprite)
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
         const time = Date.now();
@@ -80,7 +80,7 @@ export class Game {
     }
 
     update():void {
-        const now = Date.now();
+        const now = performance.now();
         const dt = (now - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = now;
 
@@ -146,6 +146,8 @@ export class Game {
         } else {
             this.shouldSendUpdate = true;
         }
+
+        setTimeout(this.update.bind(this), Math.max(1000 / 40 - dt))
     }
 
     serializeState(): GlobalState {
@@ -154,7 +156,7 @@ export class Game {
         const hazards = this.hazards.map(h => h.serializeForUpdate());
 
         return {
-            t: Date.now(),
+            t: performance.now(),
             players,
             bullets,
             hazards,
@@ -182,7 +184,7 @@ export class Game {
 
 
         return {
-            t: Date.now(),
+            t: performance.now(),
             me: me,
             others: nearbyPlayers,
             bullets: nearbyBullets,
