@@ -8,6 +8,10 @@ Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about 
 
 ```USER=$(id -u):$(id -g) docker compose up```
 
+### Status: 
+
+- Main working;
+- Socket.io_drop branch  WIP 🚧 - main problem is huje packets (up to 10kb/update on smoke tests), changing messaging
 
 ### Test:
 ``` npm run test50```

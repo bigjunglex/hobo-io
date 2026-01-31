@@ -10,11 +10,23 @@ import CONSTANTS from "../shared/constants.js";
 import { Game } from './game.js'
 import { readPacket } from "../shared/messages.js";
 
+
+const game = new Game();
+
 const PORT = 7878;
-const uWSapp = uws.App().ws('/', {
+const uWSapp = uws.App().ws<Socket>('/*', {
     compression: uws.DEDICATED_COMPRESSOR_256KB,
+    upgrade: (res, req, ctx) => {
+        res.upgrade(
+            { id: crypto.randomUUID() },
+            req.getHeader('sec-websocket-key'),
+            req.getHeader('sec-websocket-protocol'),
+            req.getHeader('sec-websocket-extensions'),
+            ctx
+        );
+    },
     open: (ws) => {
-        console.log('++++ conn');
+        const id = ws.getUserData().id
     },
     message: (ws, message, isB) => { 
         if (!isB) {
@@ -22,7 +34,13 @@ const uWSapp = uws.App().ws('/', {
             return;
         }
 
-        const out = readPacket(Buffer.from(message))
+        const out = readPacket(Buffer.from(message));
+        // join game condition
+        if (out.length === 2) {
+
+        }
+
+
     },
     close: (ws) => console.log(ws, 'disconnected')
 });
@@ -48,7 +66,6 @@ app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
 // 
 // io.engine.on('connection', (rawSocket) => rawSocket.request = null)
 // 
-const game = new Game();
 // 
 // io.on('connection', (socket) => {
     // console.log('Player connected!', socket.id);

@@ -112,3 +112,7 @@ type ScoreData = {
     name: string;
     date: string;
 }
+
+interface Socket {
+    id: string
+}

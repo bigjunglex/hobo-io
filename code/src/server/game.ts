@@ -1,7 +1,6 @@
 import CONSTANTS from "../shared/constants.js";
 import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
-import { Server, type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
 import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
@@ -13,12 +12,13 @@ import { createFlameHazzard } from "./entities/hazards/flame.js";
 import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSlamEvent, slowdownEvent, webwarpEvent } from "./events.js";
 import { DbRunner } from "./database/db-runner.js";
 import { getRunner } from "./database/connect.js";
+import * as uws from "uWebSockets.js"
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
-    private sockets: Record<string, Socket>;
+    private sockets: Record<string, uws.WebSocket<Socket>>;
     private players: Record<string, Player>;
     private bullets: Bullet[];
     private lastUpdateTime: number;
@@ -29,7 +29,7 @@ export class Game {
     private currentEvent: string|null;
     private db: DbRunner;
 
-    constructor(io: Server) {
+    constructor() {
         this.sockets = {};
         this.players = {};
         this.bullets = [];
