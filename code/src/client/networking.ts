@@ -4,24 +4,40 @@ import { processGameUpdate } from './state';
 import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
 import { topScores } from './leaderboard';
+import { joinPacket } from '../shared/messages';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = new WebSocket(`${socketProtocol}://${window.location.host}`);
 const connected = new Promise<void>(resolve => {
     socket.onopen = () => {
         console.log('Connected');
-        resolve(socket);
+        resolve(); 
     }
 
 })
 
 
 export const connect = (onGameOver: GameCallback) =>  (
-    connected.then((x) => {
-        console.log(x)
-    })
-)
+    connected.then(() => {
+        socket.onmessage = ({ data }) => {
+            console.log('data')
+        }
 
+        socket.onclose = () => {
+            console.log('Disconnected from server');
+            document.getElementById('disconnect-modal')?.classList.remove('hidden');
+            document.getElementById('reconnect-button')!.onclick = () => {
+                window.location.reload();
+            }
+        }
+
+    })
+);
+
+
+/**
+ * PREVIOUS IMPLEMENTAION ON SOCKET.IO
+ */
 // const pingSpan = document.getElementById('ping')!;
 // let pingprinter: null|PingPrinter = null;
 
@@ -53,6 +69,9 @@ export const connect = (onGameOver: GameCallback) =>  (
 
 export const play = (username: string, sprite: string) => {
     // socket.emit(CONSTATANTS.MSG_TYPES.JOIN_GAME, username, sprite);
+    
+    const packet = joinPacket(username, sprite);
+    socket.send(packet)
 }
 
 export const updateDirection = throttle(20, (dir:number) => {

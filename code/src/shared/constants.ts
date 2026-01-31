@@ -84,4 +84,17 @@ const CONSTANTS = {
     // }
 } as const;
 
+
+export enum MSG_TYPES {
+    GAME_UPDATE,
+    GAME_OVER,
+    INPUT,
+    JOIN_GAME,
+    CHAT_MESSAGE,
+    NOTIFY_JOIN,
+    NOTIFY_LEFT,
+    NOTIFY_EVENT,
+    TOP_SCORES,
+}
+
 export default CONSTANTS;

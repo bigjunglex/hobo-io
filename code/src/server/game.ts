@@ -25,13 +25,11 @@ export class Game {
     private shouldSendUpdate: boolean;
     private hazards: Hazard[];
     private bulletPool: BulletPool;
-    private io: Server;
     private effectApplicator: EffectApplicator|null;
     private currentEvent: string|null;
     private db: DbRunner;
 
     constructor(io: Server) {
-        this.io = io;
         this.sockets = {};
         this.players = {};
         this.bullets = [];
@@ -61,7 +59,7 @@ export class Game {
             socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
         }
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
     }
 
     removePlayer( socket: Socket ) {
@@ -71,7 +69,7 @@ export class Game {
         delete this.sockets[socket.id];
         delete this.players[socket.id];
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
     }
 
     handleInput(socket: Socket, dir: number) {
@@ -225,7 +223,7 @@ export class Game {
         const username = this.players[socket.id].username;
         const time = Date.now();
         
-        this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+        // this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
     }
 
     getTopScores() {
@@ -240,7 +238,7 @@ export class Game {
             applicator(p)
         }
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
 
         setTimeout(() => {
             for (const p of Object.values(this.players)) {
@@ -254,7 +252,7 @@ export class Game {
     hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
         const hazards = [ ...this.hazards ];
         transformer(this.hazards);
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
         setTimeout(() => this.hazards = hazards, t);
     }
 

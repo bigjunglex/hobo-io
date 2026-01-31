@@ -8,6 +8,7 @@ import expressify from "uwebsockets-express";
 
 import CONSTANTS from "../shared/constants.js";
 import { Game } from './game.js'
+import { readPacket } from "../shared/messages.js";
 
 const PORT = 7878;
 const uWSapp = uws.App().ws('/', {
@@ -16,8 +17,12 @@ const uWSapp = uws.App().ws('/', {
         console.log('++++ conn');
     },
     message: (ws, message, isB) => { 
-        console.log(isB ? String(message) : message);
-        ws.send(Buffer.from('ping'), true, true)
+        if (!isB) {
+            console.error('UNGA BUNGA MSG');
+            return;
+        }
+
+        const out = readPacket(Buffer.from(message))
     },
     close: (ws) => console.log(ws, 'disconnected')
 });
@@ -43,7 +48,7 @@ app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
 // 
 // io.engine.on('connection', (rawSocket) => rawSocket.request = null)
 // 
-// const game = new Game(io);
+const game = new Game();
 // 
 // io.on('connection', (socket) => {
     // console.log('Player connected!', socket.id);
