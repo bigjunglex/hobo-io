@@ -29,6 +29,7 @@ export class Game {
     private effectApplicator: EffectApplicator|null;
     private currentEvent: string|null;
     private db: DbRunner;
+    private boundUpdate:() => void;
 
     constructor(io: Server) {
         this.io = io;
@@ -42,9 +43,11 @@ export class Game {
         this.effectApplicator = null;
         this.currentEvent = null;
         this.db = getRunner();
+        this.boundUpdate = this.update.bind(this);
+        
 
         // setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
-        this.update();
+        this.boundUpdate();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
 
@@ -147,7 +150,7 @@ export class Game {
             this.shouldSendUpdate = true;
         }
 
-        setTimeout(this.update.bind(this), Math.max(1000 / 40 - dt))
+        setTimeout(this.boundUpdate, Math.max(1000 / 40 - dt))
     }
 
     serializeState(): GlobalState {
