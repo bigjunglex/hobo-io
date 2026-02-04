@@ -45,35 +45,39 @@ export class Game {
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
 
-    addPlayer( socket:Socket, username: string, sprite: string ) {
-        this.sockets[socket.id] = socket;
+    addPlayer( socket: uws.WebSocket<Socket>, username: string, sprite: string ) {
+        const id = socket.getUserData().id;
+        this.sockets[id] = socket;
 
         console.log(sprite)
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
-        const time = Date.now();
-        this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
+        const time = new Date().toISOString();
+        this.players[id] = new Player(id, username, x, y, sprite);
+
+        console.log(time, ' -- Player joined: ', id )
 
         if (this.effectApplicator && this.currentEvent) {
-            this.effectApplicator(this.players[socket.id]);
-            socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
+            this.effectApplicator(this.players[id]);
+            // socket.send(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
         }
 
         // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
     }
 
-    removePlayer( socket: Socket ) {
-        const username = this.players[socket.id]?.username ?? '';
+    removePlayer( socket: uws.WebSocket<Socket> ) {
+        const id = socket.getUserData().id;
+        const username = this.players[id]?.username ?? '';
         const time = Date.now()
 
-        delete this.sockets[socket.id];
-        delete this.players[socket.id];
+        delete this.sockets[id];
+        delete this.players[id];
 
         // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
     }
 
-    handleInput(socket: Socket, dir: number) {
-        const player = this.players[socket.id];
+    handleInput(socket: uws.WebSocket<Socket>, dir: number) {
+        const player = this.players[socket.getUserData().id];
         if (player) player.setDirection(dir)
     }
 
@@ -123,7 +127,7 @@ export class Game {
                 const y = getRandomCoordsCenter();
                 this.db.insertScore(player.score, player.username);
                 player.respawn(x, y)
-                socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
+                // socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
         })
 
@@ -133,13 +137,13 @@ export class Game {
                     const socket = this.sockets[id];
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
-                    process.nextTick(() =>
-                        socket.emit(
-                            CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                            update
-                        )
-                    )
-                })
+                    // process.nextTick(() =>
+                    //     socket.send(
+                    //         CONSTANTS.MSG_TYPES.GAME_UPDATE,
+                    //         update
+                    //     )
+                    // )
+            })
             this.shouldSendUpdate = false;
         } else {
             this.shouldSendUpdate = true;
@@ -219,8 +223,8 @@ export class Game {
         return hazards
     }
 
-    chatMessage(socket:Socket, message: string) {
-        const username = this.players[socket.id].username;
+    chatMessage(socket:uws.WebSocket<Socket>, message: string) {
+        const username = this.players[socket.getUserData().id].username;
         const time = Date.now();
         
         // this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)

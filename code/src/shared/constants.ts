@@ -7,7 +7,7 @@ const CONSTANTS = {
         CHAT_MESSAGE: 'chat_message',
         NOTIFY_JOIN: 'notify_join',
         NOTIFY_LEFT: 'notify_left',
-        NOTIFY_EVENT: 'notify_event',
+        NOTIFY_EVENT: 'notify_event', 
         TOP_SCORES: 'top_scores',
     },
     
@@ -55,7 +55,7 @@ const CONSTANTS = {
      * 2 - ghosty
      * 3 - zombean
      */
-    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'],
+    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'], // TODO: Rewrite to enum in msg
     /**
      * 0 - mushroom
      * 1 - portal
@@ -63,38 +63,8 @@ const CONSTANTS = {
      * 3 - steel
      * 4 - flame
      */
-    HAZARD_SPRITES: ['mushroom', 'portal', 'spider_web', 'steel', 'flame'],
+    HAZARD_SPRITES: ['mushroom', 'portal', 'spider_web', 'steel', 'flame'], // TODO: Rewrite to enum in msg
     
-    
-
-    /**
-     * contanst for spatial hash grid realiztions
-     * but atm biggest bottleneck on performance is player.forEach socket.emit() on update
-     * createUpdate and applyCollision suprisingly low on cpu time, judging from debugger
-     */
-    // BOUNDS: {
-    //     maxX: 3000,
-    //     maxY: 3000,
-    //     minY: 0,
-    //     minX: 0,
-    // },
-
-    // DIMENSIONS: {
-        
-    // }
 } as const;
-
-
-export enum MSG_TYPES {
-    GAME_UPDATE,
-    GAME_OVER,
-    INPUT,
-    JOIN_GAME,
-    CHAT_MESSAGE,
-    NOTIFY_JOIN,
-    NOTIFY_LEFT,
-    NOTIFY_EVENT,
-    TOP_SCORES,
-}
 
 export default CONSTANTS;

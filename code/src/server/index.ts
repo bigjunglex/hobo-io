@@ -5,17 +5,13 @@ import wdm from "webpack-dev-middleware";
 import * as uws from 'uWebSockets.js';
 import expressify from "uwebsockets-express";
 
-
-import CONSTANTS from "../shared/constants.js";
 import { Game } from './game.js'
-import { readPacket } from "../shared/messages.js";
-
+import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket } from "../shared/messages.js";
 
 const game = new Game();
 
 const PORT = 7878;
 const uWSapp = uws.App().ws<Socket>('/*', {
-    compression: uws.DEDICATED_COMPRESSOR_256KB,
     upgrade: (res, req, ctx) => {
         res.upgrade(
             { id: crypto.randomUUID() },
@@ -28,21 +24,34 @@ const uWSapp = uws.App().ws<Socket>('/*', {
     open: (ws) => {
         const id = ws.getUserData().id
     },
-    message: (ws, message, isB) => { 
+    message: (ws, packet, isB) => { 
         if (!isB) {
             console.error('UNGA BUNGA MSG');
             return;
         }
-
-        const out = readPacket(Buffer.from(message));
-        // join game condition
-        if (out.length === 2) {
-
+        const type = getPacketType(packet);
+        switch (type) {
+            case MSG_TYPES.JOIN_GAME:
+                const [username, sprite] = readJoinPacket(packet);
+                game.addPlayer(ws, username, sprite.toString());
+                break;
+            case MSG_TYPES.INPUT:
+                const dir = readInputPacket(packet);
+                game.handleInput(ws, dir);
+                break;
+            case MSG_TYPES.CHAT_MESSAGE:
+                const message = readMessagePacket(packet);
+                game.chatMessage(ws, message);
+                break;
+            default: 
+                console.error('Not Defined Packet Type');
         }
 
-
     },
-    close: (ws) => console.log(ws, 'disconnected')
+    close: (ws, code) => {
+        game.removePlayer(ws);
+        console.error('[DISCONNECT]:', ws.getUserData().id, ' --- with code ', code);
+    }
 });
 const app = expressify(uWSapp);
 app.use(express.static('public'));
@@ -80,20 +89,4 @@ app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
 // })
 // 
 // 
-// function joinGame(this: Socket, username: string, sprite: string): void {
-    // game.addPlayer(this, username, sprite);
-// }
-// 
-// function handleInput(this: Socket, dir: number): void {
-    // game.handleInput(this, dir);
-// }
-// 
-// function handleChat(this: Socket, message: string): void {
-    // console.log(message)
-    // game.chatMessage(this, message)
-// }
-// 
-// function onDisconnect(this: Socket, reason: DisconnectReason, description?: any): void {
-    // game.removePlayer(this);
-    // console.log('[DISCONNECT]:', reason, this.id)
-// }
+

@@ -4,26 +4,29 @@ import { processGameUpdate } from './state';
 import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
 import { topScores } from './leaderboard';
-import { joinPacket } from '../shared/messages';
+import { write } from 'node:fs';
+import { writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = new WebSocket(`${socketProtocol}://${window.location.host}`);
-const connected = new Promise<void>(resolve => {
+socket.binaryType = 'arraybuffer';
+
+const connected = new Promise<WebSocket>(resolve => {
     socket.onopen = () => {
         console.log('Connected');
-        resolve(); 
+        resolve(socket); 
     }
 
 })
 
 
 export const connect = (onGameOver: GameCallback) =>  (
-    connected.then(() => {
-        socket.onmessage = ({ data }) => {
+    connected.then((ws) => {
+        ws.onmessage = ({ data }) => {
             console.log('data')
         }
 
-        socket.onclose = () => {
+        ws.onclose = () => {
             console.log('Disconnected from server');
             document.getElementById('disconnect-modal')?.classList.remove('hidden');
             document.getElementById('reconnect-button')!.onclick = () => {
@@ -69,43 +72,46 @@ export const connect = (onGameOver: GameCallback) =>  (
 
 export const play = (username: string, sprite: string) => {
     // socket.emit(CONSTATANTS.MSG_TYPES.JOIN_GAME, username, sprite);
-    
-    const packet = joinPacket(username, sprite);
-    socket.send(packet)
+    const packet = writeJoinPacket(username, sprite);
+    socket.send(packet);
 }
 
 export const updateDirection = throttle(20, (dir:number) => {
     // socket.emit(CONSTATANTS.MSG_TYPES.INPUT, dir);
+    const packet = writeInputPacket(dir);
+    socket.send(packet);
 })
 
 export const sendMessage = (message: string) => {
     // socket.emit(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, message)
+    const packet = writeMessagePacket(message);
+    socket.send(packet);
 }
 
 
-// class PingPrinter {
-//     private deltas: number[];
-//     private lastUpdate: number;
-//     private target: HTMLElement; 
+class PingPrinter {
+    private deltas: number[];
+    private lastUpdate: number;
+    private target: HTMLElement; 
 
-//     constructor(target: HTMLElement) {
-//         this.deltas = [];
-//         this.lastUpdate = performance.now();
-//         this.target = target;
-//     }
+    constructor(target: HTMLElement) {
+        this.deltas = [];
+        this.lastUpdate = performance.now();
+        this.target = target;
+    }
 
-//     addUpdate() {
-//         const now = performance.now();
-//         const dt = now - this.lastUpdate;
-//         this.lastUpdate = now;
-//         this.deltas.push(dt);
-//         if (this.deltas.length > 30) this.setPing(); 
-//     }
+    addUpdate() {
+        const now = performance.now();
+        const dt = now - this.lastUpdate;
+        this.lastUpdate = now;
+        this.deltas.push(dt);
+        if (this.deltas.length > 30) this.setPing(); 
+    }
 
-//     setPing() {
-//         const len = this.deltas.length;
-//         const average = (this.deltas.reduce((a, v) => a + v, 0) / len).toFixed(2);
-//         this.target.textContent = average;
-//         this.deltas = [];
-//     }
-// }
+    setPing() {
+        const len = this.deltas.length;
+        const average = (this.deltas.reduce((a, v) => a + v, 0) / len).toFixed(2);
+        this.target.textContent = average;
+        this.deltas = [];
+    }
+}
