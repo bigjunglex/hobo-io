@@ -1,6 +1,6 @@
+
 export enum MSG_TYPES {
     GAME_UPDATE,
-    GAME_OVER,
     INPUT,
     JOIN_GAME,
     CHAT_MESSAGE,
@@ -153,3 +153,83 @@ export function readChatMessagePacket(packet: ArrayBuffer): ChatMessage {
     return { username, message, time }
 }
 
+/**
+ * notify packets = JOIN + LEFT
+ * @param isJoin specify join or left message
+ * 
+ * [TYPE] [NAMELENGTH] [....NAME] [TIME]
+ */
+export function writeNotifyPacket(msg: NotifyMessage, isJoin = true): ArrayBuffer {
+    const username = new TextEncoder().encode(msg.username);
+    const size = UINT8_SIZE * 2 + FLOAT64_SIZE + username.byteLength;
+    const buf = new ArrayBuffer(size);
+    const view = new DataView(buf);
+    const type = isJoin ? MSG_TYPES.NOTIFY_JOIN : MSG_TYPES.NOTIFY_LEFT;
+
+    let offset = 0;
+    view.setUint8(offset++, type);
+    view.setUint8(offset++, username.byteLength);
+    for (const b of username) {
+        view.setUint8(offset++, b);
+    };
+    view.setFloat64(offset, msg.time, true);
+
+    return buf
+}
+
+/**
+ * read LEFT OR JOIN notification
+ */
+export function readNotifyPacket(packet: ArrayBuffer): NotifyMessage {
+    const view = new DataView(packet);
+    const u8view = new Uint8Array(packet);
+    
+    let offset = 1;
+    const nameBytes = view.getUint8(offset++);
+    const username = new TextDecoder().decode(u8view.subarray(offset, offset + nameBytes));
+    offset += nameBytes;
+    const time = view.getFloat64(offset, true);
+    
+    return { username, time }
+}
+
+/**
+ * [TYPE][...EVENT]
+ */
+export function writeEventPacket(eventName: string): ArrayBuffer {
+    const event = new TextEncoder().encode(eventName);
+    const size = UINT8_SIZE + event.byteLength;
+    const buf = new ArrayBuffer(size);
+    const view = new Uint8Array(buf);
+    
+    let offset = 0;
+    view[offset++] = MSG_TYPES.NOTIFY_EVENT;
+    view.set(event, offset);
+
+    return buf
+}
+
+export function readEventPacket(packet: ArrayBuffer): string {
+    const view = new Uint8Array(packet);
+    const event = new TextDecoder().decode(view.subarray(1));
+    return event
+}
+
+
+export function writeScoresPacket(scores: ScoreData[]): ArrayBuffer {
+    const payload = new TextEncoder().encode(JSON.stringify(scores));
+    const size = UINT8_SIZE + payload.byteLength;
+    const buf = new ArrayBuffer(size);
+    const view = new Uint8Array(buf);
+
+    view[0] = MSG_TYPES.TOP_SCORES;
+    view.set(payload, 1);
+
+    return buf
+};
+
+export function readScoresPacket(packet: ArrayBuffer): ScoreData[] {
+    const view = new Uint8Array(packet);
+    const json = new TextDecoder().decode(view.subarray(1));
+    return JSON.parse(json)
+}

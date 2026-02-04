@@ -6,7 +6,7 @@ import * as uws from 'uWebSockets.js';
 import expressify from "uwebsockets-express";
 
 import { Game } from './game.js'
-import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket } from "../shared/messages.js";
+import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writeScoresPacket } from "../shared/messages.js";
 
 const game = new Game();
 
@@ -14,7 +14,7 @@ const PORT = 7878;
 const uWSapp = uws.App().ws<Socket>('/*', {
     upgrade: (res, req, ctx) => {
         res.upgrade(
-            { id: crypto.randomUUID() },
+            { id: crypto.randomUUID().substring(0,5) },
             req.getHeader('sec-websocket-key'),
             req.getHeader('sec-websocket-protocol'),
             req.getHeader('sec-websocket-extensions'),
@@ -22,7 +22,9 @@ const uWSapp = uws.App().ws<Socket>('/*', {
         );
     },
     open: (ws) => {
-        const id = ws.getUserData().id
+        const topScores = game.getTopScores() as ScoreData[];
+        const packet = writeScoresPacket(topScores);
+        ws.send(packet, true);
     },
     message: (ws, packet, isB) => { 
         if (!isB) {
@@ -66,27 +68,3 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
-
-// const io = new Server({ 
-    // parser: customParser,
-// });
-// 
-// io.attachApp(uWSapp);
-// 
-// io.engine.on('connection', (rawSocket) => rawSocket.request = null)
-// 
-// 
-// io.on('connection', (socket) => {
-    // console.log('Player connected!', socket.id);
-// 
-    // socket.on(CONSTANTS.MSG_TYPES.JOIN_GAME, joinGame)
-    // socket.on(CONSTANTS.MSG_TYPES.INPUT, handleInput)
-    // socket.on(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, handleChat)
-    // socket.on('disconnect', onDisconnect)
-    // 
-    // socket.emit(CONSTANTS.MSG_TYPES.TOP_SCORES, game.getTopScores())
-// 
-// })
-// 
-// 
-
