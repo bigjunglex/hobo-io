@@ -298,11 +298,11 @@ function insertPlayer(
     view.setFloat32(offset, p.direction, true);
     offset += FLOAT32_SIZE;
 
-    view.setUint16(offset, p.x);
-    offset += UINT16_SIZE;
+    view.setFloat32(offset, p.x);
+    offset += FLOAT32_SIZE;
 
-    view.setUint16(offset, p.y);
-    offset += UINT16_SIZE;
+    view.setFloat32(offset, p.y);
+    offset += FLOAT32_SIZE;
 
     view.setUint16(offset, p.hp, true);
     offset += UINT16_SIZE;
@@ -327,11 +327,11 @@ function insertBullet(
     u8view.set(id, offset);
     offset += id.byteLength;
 
-    view.setUint16(offset, b.x);
-    offset += UINT16_SIZE;
+    view.setFloat32(offset, b.x);
+    offset += FLOAT32_SIZE;
 
-    view.setUint16(offset, b.y);
-    offset += UINT16_SIZE;
+    view.setFloat32(offset, b.y);
+    offset += FLOAT32_SIZE;
 
     const bulletBytes = offset - start;
     view.setUint8(offset++, bulletBytes);
