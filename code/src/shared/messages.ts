@@ -1,4 +1,3 @@
-
 export enum MSG_TYPES {
     GAME_UPDATE,
     INPUT,
@@ -232,4 +231,108 @@ export function readScoresPacket(packet: ArrayBuffer): ScoreData[] {
     const view = new Uint8Array(packet);
     const json = new TextDecoder().decode(view.subarray(1));
     return JSON.parse(json)
+}
+
+
+export function writeUpdatePacket(gs: GameState): ArrayBuffer {
+    const encoder = new TextEncoder();
+    const buf = new ArrayBuffer(4096)
+    const view = new DataView(buf);
+    const u8view = new Uint8Array(buf);
+    
+    let offset = 0;
+    view.setUint8(offset++, MSG_TYPES.GAME_UPDATE);
+    view.setFloat64(offset, gs.t, true);
+    offset += FLOAT64_SIZE;
+
+    // [ COUNT ] [ ...[LENGTH][PLAYER] ]
+    //  ^
+    view.setUint8(offset++, gs.others.length + 1);
+    insertPlayer(encoder, view, u8view, offset, gs.me);
+    for (const p of gs.others) {
+        insertPlayer(encoder, view, u8view, offset, p);
+    }
+
+    // [ COUNT ] [ ...[LENGTH][BULLET] ]
+    //  ^
+    view.setUint8(offset++, gs.bullets.length);
+    for (const b of gs.bullets) {
+        insertBullet(encoder, view, u8view, offset, b)
+    }
+
+
+    return buf
+} 
+
+
+/**
+ * inserts @SerializedPlayer into buffer by provided views
+ */
+function insertPlayer(
+    encoder: TextEncoder,
+    view: DataView<ArrayBuffer>,
+    u8view: Uint8Array<ArrayBuffer>,
+    offset: number,
+    p: Player
+): void {
+    const start = offset++;
+    const id = encoder.encode(p.id);
+    view.setUint8(offset++, id.byteLength);
+    u8view.set(id, offset);
+    offset += id.byteLength;
+
+    const username = encoder.encode(p.username);
+    view.setUint8(offset++, username.byteLength);
+    u8view.set(username, offset);
+    offset += username.byteLength;
+
+    view.setUint8(offset++, +p.sprite);
+
+    const effect = encoder.encode(p.effect);
+    view.setUint8(offset++, effect.byteLength);
+    if (effect.byteLength > 0) {
+        u8view.set(effect, offset);
+        offset += effect.byteLength;
+    }
+
+    view.setFloat32(offset, p.direction, true);
+    offset += FLOAT32_SIZE;
+
+    view.setUint16(offset, p.x);
+    offset += UINT16_SIZE;
+
+    view.setUint16(offset, p.y);
+    offset += UINT16_SIZE;
+
+    view.setUint16(offset, p.hp, true);
+    offset += UINT16_SIZE;
+
+    const playerLength = offset - start;
+    view.setUint8(start, playerLength);
+}
+
+/**
+ * inserts @SerializedEntity into buffer by provided views
+ */
+function insertBullet(
+    encoder: TextEncoder,
+    view: DataView<ArrayBuffer>,
+    u8view: Uint8Array<ArrayBuffer>,
+    offset: number,
+    b: SerializedEntity
+): void {
+    const start = offset++;
+    const id = encoder.encode(b.id);
+    view.setUint8(offset++, id.byteLength);
+    u8view.set(id, offset);
+    offset += id.byteLength;
+
+    view.setUint16(offset, b.x);
+    offset += UINT16_SIZE;
+
+    view.setUint16(offset, b.y);
+    offset += UINT16_SIZE;
+
+    const bulletBytes = offset - start;
+    view.setUint8(offset++, bulletBytes);
 }
