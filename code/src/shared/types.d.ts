@@ -32,7 +32,7 @@ type Score = {
 
 type SerializedHazard = {
     id: string;
-    sprite: number;
+    sprite: string;
     onCooldown: boolean;
 } & Position;
 
