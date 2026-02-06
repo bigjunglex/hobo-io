@@ -3,6 +3,9 @@
 
 Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about io game development
 
+## CURRENT VERISON: SOCKET.IO + JSON messaging
+to use binary messaging without socket.io go to main branch
+
 ### Start up: 
 ```cd code && npm install```
 
