@@ -9,7 +9,7 @@ const CONSTANTS = {
         NOTIFY_LEFT: 'notify_left',
         NOTIFY_EVENT: 'notify_event',
         TOP_SCORES: 'top_scores',
-    },
+    }, // remove after socket.io drop finish
     
     MAP_SIZE:3000,
     MAP_SIZE_SQ: 3000 ** 2,
@@ -49,39 +49,16 @@ const CONSTANTS = {
         HAZARDS: 10_000
     },
 
-    /**
-     * 0 - bean
-     * 1 - mark
-     * 2 - ghosty
-     * 3 - zombean
-     */
-    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'],
-    /**
-     * 0 - mushroom
-     * 1 - portal
-     * 2 - web
-     * 3 - steel
-     * 4 - flame
-     */
-    HAZARD_SPRITES: ['mushroom', 'portal', 'spider_web', 'steel', 'flame'],
-    
-    
+    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'], // TODO: Rewrite to enum in msg
 
-    /**
-     * contanst for spatial hash grid realiztions
-     * but atm biggest bottleneck on performance is player.forEach socket.emit() on update
-     * createUpdate and applyCollision suprisingly low on cpu time, judging from debugger
-     */
-    // BOUNDS: {
-    //     maxX: 3000,
-    //     maxY: 3000,
-    //     minY: 0,
-    //     minX: 0,
-    // },
-
-    // DIMENSIONS: {
-        
-    // }
 } as const;
+
+export enum HAZARDS {
+    Mushroom,
+    Portal,
+    Spider_Web,
+    Steel,
+    Flame
+}
 
 export default CONSTANTS;

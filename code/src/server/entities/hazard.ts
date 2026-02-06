@@ -6,11 +6,11 @@ import { getRandomCoords } from "../utils.js";
 type Effect = (entity: Player) => void;
 
 export class Hazard extends Entity {
-    private sprite: string;
+    private sprite: number;
     public effect: Effect;
     public onCooldown: boolean;
     
-    constructor(id: string, x: number, y: number, effect: Effect, sprite: string) {
+    constructor(id: string, x: number, y: number, effect: Effect, sprite: number) {
         super(id, x, y, 0, 0);
         this.effect = effect.bind(this);
         this.sprite = sprite;
