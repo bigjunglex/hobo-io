@@ -3,6 +3,9 @@
 
 Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about io game development
 
+## WORK IN PROGRESS
+## to check working version with JSON messaging go to JSON branch
+
 ### Start up: 
 ```cd code && npm install```
 
