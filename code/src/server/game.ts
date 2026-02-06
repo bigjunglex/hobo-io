@@ -13,6 +13,7 @@ import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSl
 import { DbRunner } from "./database/db-runner.js";
 import { getRunner } from "./database/connect.js";
 import * as uws from "uWebSockets.js"
+import { writeChatMessagePacket, writeEventPacket, writeJoinPacket, writeNotifyPacket, writeUpdatePacket } from "../shared/messages.js";
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
@@ -26,11 +27,12 @@ export class Game {
     private hazards: Hazard[];
     private bulletPool: BulletPool;
     private effectApplicator: EffectApplicator|null;
+    private app: uws.TemplatedApp;
     private currentEvent: string|null;
     private db: DbRunner;
     private boundUpdate:() => void;
 
-    constructor() {
+    constructor(app: uws.TemplatedApp) {
         this.sockets = {};
         this.players = {};
         this.bullets = [];
@@ -42,9 +44,8 @@ export class Game {
         this.currentEvent = null;
         this.db = getRunner();
         this.boundUpdate = this.update.bind(this);
-        
+        this.app = app;
 
-        // setInterval(this.update.bind(this), 1000 / 40); // тик дрифтит, хз насколько важно
         this.boundUpdate();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
@@ -55,17 +56,17 @@ export class Game {
 
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
-        const time = new Date().toISOString();
+        const time = Date.now();
         this.players[id] = new Player(id, username, x, y, sprite);
 
         console.log(time, ' -- Player joined: ', id )
 
         if (this.effectApplicator && this.currentEvent) {
             this.effectApplicator(this.players[id]);
-            // socket.send(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
         }
 
-        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
+        const packet = writeNotifyPacket({ username, time }, true) 
+        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
     }
 
     removePlayer( socket: uws.WebSocket<Socket> ) {
@@ -76,7 +77,8 @@ export class Game {
         delete this.sockets[id];
         delete this.players[id];
 
-        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
+        const packet = writeNotifyPacket({ username, time }, false);
+        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true);
     }
 
     handleInput(socket: uws.WebSocket<Socket>, dir: number) {
@@ -123,14 +125,12 @@ export class Game {
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))
 
         Object.keys(this.sockets).forEach(id => {
-            const socket = this.sockets[id];
             const player = this.players[id];
             if (player.hp <= 0) {
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
                 this.db.insertScore(player.score, player.username);
                 player.respawn(x, y)
-                // socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
         })
 
@@ -140,12 +140,8 @@ export class Game {
                     const socket = this.sockets[id];
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
-                    // process.nextTick(() =>
-                    //     socket.send(
-                    //         CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                    //         update
-                    //     )
-                    // )
+                    const packet = writeUpdatePacket(update);
+                    process.nextTick(() => socket.send(packet, true))
             })
             this.shouldSendUpdate = false;
         } else {
@@ -229,8 +225,8 @@ export class Game {
     chatMessage(socket:uws.WebSocket<Socket>, message: string) {
         const username = this.players[socket.getUserData().id].username;
         const time = Date.now();
-        
-        // this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+        const packet = writeChatMessagePacket({ username, message, time });
+        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true);
     }
 
     getTopScores() {
@@ -245,7 +241,8 @@ export class Game {
             applicator(p)
         }
 
-        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        const packet = writeEventPacket(eventName);
+        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
 
         setTimeout(() => {
             for (const p of Object.values(this.players)) {
@@ -259,7 +256,9 @@ export class Game {
     hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
         const hazards = [ ...this.hazards ];
         transformer(this.hazards);
-        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        const packet = writeEventPacket(eventName);
+        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
+        
         setTimeout(() => this.hazards = hazards, t);
     }
 

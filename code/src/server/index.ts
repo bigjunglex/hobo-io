@@ -7,11 +7,14 @@ import expressify from "uwebsockets-express";
 
 import { Game } from './game.js'
 import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writeScoresPacket } from "../shared/messages.js";
+import CONSTANTS from "../shared/constants.js";
 
-const game = new Game();
 
 const PORT = 7878;
-const uWSapp = uws.App().ws<Socket>('/*', {
+const uWSapp = uws.App();
+const game = new Game(uWSapp);
+
+uWSapp.ws<Socket>('/*', {
     upgrade: (res, req, ctx) => {
         res.upgrade(
             { id: crypto.randomUUID().substring(0,5) },
@@ -24,6 +27,7 @@ const uWSapp = uws.App().ws<Socket>('/*', {
     open: (ws) => {
         const topScores = game.getTopScores() as ScoreData[];
         const packet = writeScoresPacket(topScores);
+        ws.subscribe(CONSTANTS.NOTIFY_CHANNEL);
         ws.send(packet, true);
     },
     message: (ws, packet, isB) => { 
@@ -55,6 +59,7 @@ const uWSapp = uws.App().ws<Socket>('/*', {
         console.error('[DISCONNECT]:', ws.getUserData().id, ' --- with code ', code);
     }
 });
+
 const app = expressify(uWSapp);
 app.use(express.static('public'));
 

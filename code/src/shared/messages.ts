@@ -1,5 +1,3 @@
-import { Player } from "../server/entities/player";
-
 export enum MSG_TYPES {
     GAME_UPDATE,
     INPUT,

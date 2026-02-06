@@ -11,6 +11,8 @@ const CONSTANTS = {
         TOP_SCORES: 'top_scores',
     }, // remove after socket.io drop finish
     
+    NOTIFY_CHANNEL: 'general',
+
     MAP_SIZE:3000,
     MAP_SIZE_SQ: 3000 ** 2,
 

@@ -23,7 +23,9 @@ const connected = new Promise<WebSocket>(resolve => {
 export const connect = (onGameOver: GameCallback) =>  (
     connected.then((ws) => {
         ws.onmessage = ({ data }) => {
-            console.log('data')
+            if (!(data instanceof ArrayBuffer)) {
+                
+            }
         }
 
         ws.onclose = () => {
