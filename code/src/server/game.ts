@@ -1,7 +1,6 @@
 import CONSTANTS from "../shared/constants.js";
 import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
-import { Server, type Socket } from "socket.io";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
 import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
@@ -13,26 +12,25 @@ import { createFlameHazzard } from "./entities/hazards/flame.js";
 import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSlamEvent, slowdownEvent, webwarpEvent } from "./events.js";
 import { DbRunner } from "./database/db-runner.js";
 import { getRunner } from "./database/connect.js";
+import * as uws from "uWebSockets.js"
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
-    private sockets: Record<string, Socket>;
+    private sockets: Record<string, uws.WebSocket<Socket>>;
     private players: Record<string, Player>;
     private bullets: Bullet[];
     private lastUpdateTime: number;
     private shouldSendUpdate: boolean;
     private hazards: Hazard[];
     private bulletPool: BulletPool;
-    private io: Server;
     private effectApplicator: EffectApplicator|null;
     private currentEvent: string|null;
     private db: DbRunner;
     private boundUpdate:() => void;
 
-    constructor(io: Server) {
-        this.io = io;
+    constructor() {
         this.sockets = {};
         this.players = {};
         this.bullets = [];
@@ -51,34 +49,38 @@ export class Game {
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
     }
 
-    addPlayer( socket:Socket, username: string, sprite: string ) {
-        this.sockets[socket.id] = socket;
+    addPlayer( socket: uws.WebSocket<Socket>, username: string, sprite: string ) {
+        const id = socket.getUserData().id;
+        this.sockets[id] = socket;
 
         const x = getRandomCoordsCenter();
         const y = getRandomCoordsCenter();
-        const time = Date.now();
-        this.players[socket.id] = new Player(socket.id, username, x, y, sprite);
+        const time = new Date().toISOString();
+        this.players[id] = new Player(id, username, x, y, sprite);
+
+        console.log(time, ' -- Player joined: ', id )
 
         if (this.effectApplicator && this.currentEvent) {
-            this.effectApplicator(this.players[socket.id]);
-            socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
+            this.effectApplicator(this.players[id]);
+            // socket.send(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, this.currentEvent)
         }
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_JOIN, { username, time }) 
     }
 
-    removePlayer( socket: Socket ) {
-        const username = this.players[socket.id]?.username ?? '';
+    removePlayer( socket: uws.WebSocket<Socket> ) {
+        const id = socket.getUserData().id;
+        const username = this.players[id]?.username ?? '';
         const time = Date.now()
 
-        delete this.sockets[socket.id];
-        delete this.players[socket.id];
+        delete this.sockets[id];
+        delete this.players[id];
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_LEFT, { username, time } satisfies NotifyMessage  )
     }
 
-    handleInput(socket: Socket, dir: number) {
-        const player = this.players[socket.id];
+    handleInput(socket: uws.WebSocket<Socket>, dir: number) {
+        const player = this.players[socket.getUserData().id];
         if (player) player.setDirection(dir)
     }
 
@@ -128,7 +130,7 @@ export class Game {
                 const y = getRandomCoordsCenter();
                 this.db.insertScore(player.score, player.username);
                 player.respawn(x, y)
-                socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
+                // socket.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, 'death')
             }
         })
 
@@ -138,13 +140,13 @@ export class Game {
                     const socket = this.sockets[id];
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
-                    process.nextTick(() =>
-                        socket.emit(
-                            CONSTANTS.MSG_TYPES.GAME_UPDATE,
-                            update
-                        )
-                    )
-                })
+                    // process.nextTick(() =>
+                    //     socket.send(
+                    //         CONSTANTS.MSG_TYPES.GAME_UPDATE,
+                    //         update
+                    //     )
+                    // )
+            })
             this.shouldSendUpdate = false;
         } else {
             this.shouldSendUpdate = true;
@@ -183,8 +185,6 @@ export class Game {
         const nearbyHazzards = state.hazards.filter(
             h => distanceToSq(h.x, h.y, me.x, me.y) <= radius// CONSTANTS.MAP_SIZE_SQ / 5
         )
-
-
 
         return {
             t: performance.now(),
@@ -226,11 +226,11 @@ export class Game {
         return hazards
     }
 
-    chatMessage(socket:Socket, message: string) {
-        const username = this.players[socket.id].username;
+    chatMessage(socket:uws.WebSocket<Socket>, message: string) {
+        const username = this.players[socket.getUserData().id].username;
         const time = Date.now();
         
-        this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
+        // this.io.emit(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, { username, message, time} satisfies ChatMessage)
     }
 
     getTopScores() {
@@ -245,7 +245,7 @@ export class Game {
             applicator(p)
         }
 
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
 
         setTimeout(() => {
             for (const p of Object.values(this.players)) {
@@ -259,7 +259,7 @@ export class Game {
     hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
         const hazards = [ ...this.hazards ];
         transformer(this.hazards);
-        this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
+        // this.io.emit(CONSTANTS.MSG_TYPES.NOTIFY_EVENT, eventName)
         setTimeout(() => this.hazards = hazards, t);
     }
 

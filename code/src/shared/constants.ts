@@ -7,7 +7,7 @@ const CONSTANTS = {
         CHAT_MESSAGE: 'chat_message',
         NOTIFY_JOIN: 'notify_join',
         NOTIFY_LEFT: 'notify_left',
-        NOTIFY_EVENT: 'notify_event',
+        NOTIFY_EVENT: 'notify_event', 
         TOP_SCORES: 'top_scores',
     }, // remove after socket.io drop finish
     

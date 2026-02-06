@@ -2,17 +2,59 @@ import express from "express";
 import webpack from "webpack";
 import { type Configuration } from "webpack"; 
 import wdm from "webpack-dev-middleware";
-import customParser from "socket.io-msgpack-parser";
-import { App } from 'uWebSockets.js';
+import * as uws from 'uWebSockets.js';
 import expressify from "uwebsockets-express";
 
-
-import CONSTANTS from "../shared/constants.js";
-import { type DisconnectReason, Server, Socket } from "socket.io";
 import { Game } from './game.js'
+import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writeScoresPacket } from "../shared/messages.js";
+
+const game = new Game();
 
 const PORT = 7878;
-const uWSapp = App();
+const uWSapp = uws.App().ws<Socket>('/*', {
+    upgrade: (res, req, ctx) => {
+        res.upgrade(
+            { id: crypto.randomUUID().substring(0,5) },
+            req.getHeader('sec-websocket-key'),
+            req.getHeader('sec-websocket-protocol'),
+            req.getHeader('sec-websocket-extensions'),
+            ctx
+        );
+    },
+    open: (ws) => {
+        const topScores = game.getTopScores() as ScoreData[];
+        const packet = writeScoresPacket(topScores);
+        ws.send(packet, true);
+    },
+    message: (ws, packet, isB) => { 
+        if (!isB) {
+            console.error('UNGA BUNGA MSG');
+            return;
+        }
+        const type = getPacketType(packet);
+        switch (type) {
+            case MSG_TYPES.JOIN_GAME:
+                const [username, sprite] = readJoinPacket(packet);
+                game.addPlayer(ws, username, sprite.toString());
+                break;
+            case MSG_TYPES.INPUT:
+                const dir = readInputPacket(packet);
+                game.handleInput(ws, dir);
+                break;
+            case MSG_TYPES.CHAT_MESSAGE:
+                const message = readMessagePacket(packet);
+                game.chatMessage(ws, message);
+                break;
+            default: 
+                console.error('Not Defined Packet Type');
+        }
+
+    },
+    close: (ws, code) => {
+        game.removePlayer(ws);
+        console.error('[DISCONNECT]:', ws.getUserData().id, ' --- with code ', code);
+    }
+});
 const app = expressify(uWSapp);
 app.use(express.static('public'));
 
@@ -26,44 +68,3 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
-
-const io = new Server({ 
-    parser: customParser,
-});
-
-io.attachApp(uWSapp);
-
-io.engine.on('connection', (rawSocket) => rawSocket.request = null)
-
-const game = new Game(io);
-
-io.on('connection', (socket) => {
-    console.log('Player connected!', socket.id);
-
-    socket.on(CONSTANTS.MSG_TYPES.JOIN_GAME, joinGame)
-    socket.on(CONSTANTS.MSG_TYPES.INPUT, handleInput)
-    socket.on(CONSTANTS.MSG_TYPES.CHAT_MESSAGE, handleChat)
-    socket.on('disconnect', onDisconnect)
-    
-    socket.emit(CONSTANTS.MSG_TYPES.TOP_SCORES, game.getTopScores())
-
-})
-
-
-function joinGame(this: Socket, username: string, sprite: string): void {
-    game.addPlayer(this, username, sprite);
-}
-
-function handleInput(this: Socket, dir: number): void {
-    game.handleInput(this, dir);
-}
-
-function handleChat(this: Socket, message: string): void {
-    console.log(message)
-    game.chatMessage(this, message)
-}
-
-function onDisconnect(this: Socket, reason: DisconnectReason, description?: any): void {
-    game.removePlayer(this);
-    console.log('[DISCONNECT]:', reason, this.id)
-}

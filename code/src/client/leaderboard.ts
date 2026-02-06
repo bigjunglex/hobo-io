@@ -9,7 +9,7 @@ export function updateLeaderboard(leaderboard: Score[]):void {
     for (let i = 0; i < leaderboard.length; i++) {
         const name = `<td>${escapeHtml(leaderboard[i].username.slice(0, 15)) || 'Anonymous'}</td>`
         const score = `<td>${leaderboard[i].score }</td>`
-        rows[i +1].innerHTML = `${name}${score}` 
+        rows[i + 1].innerHTML = `${name}${score}` 
     }
 }
 
@@ -40,10 +40,10 @@ export function updateMyScore(s:number) {
 }
 
 export function topScores(data: ScoreData[]) {
-    for (let i = 0; i < data.length; i++) {
+    for (let i = 0; i < allTimeRows.length; i++) {
         const name = `<td>${escapeHtml(data[i].name.slice(0, 15))}</td>`
         const score = `<td>${data[i].score.toFixed(0)}</td>`
         const time = `<td>${data[i].date.split(' ')[0]}</td>`
-        allTimeRows[i + 1].innerHTML = `${name}${score}${time}`
+        allTimeRows[i].innerHTML = `${name}${score}${time}`
     }
 }
