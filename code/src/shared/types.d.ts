@@ -15,7 +15,7 @@ type Player = {
     id: string;
     hp: number;
     username: string;
-    sprite: string;
+    sprite: number;
     effect?: string;
 } & Position;
 
@@ -62,7 +62,7 @@ type SerializedEntity = {
 
 type SerializedPlayer = SerializedEntity & {
     username: string;
-    sprite:string;
+    sprite: number;
     effect?: string;
     direction: number;
     hp: number

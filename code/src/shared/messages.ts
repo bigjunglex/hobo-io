@@ -1,3 +1,5 @@
+import { Player } from "../server/entities/player";
+
 export enum MSG_TYPES {
     GAME_UPDATE,
     INPUT,
@@ -318,7 +320,7 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const leaderboard: Score[] = [];
     let scoresCount = view.getUint8(offset++);
     do {
-        const score = extractScore(decoder, view, u8view, offset);
+        const score = extractBoardEntry(decoder, view, u8view, offset);
         leaderboard.push(score)
         --scoresCount;
     } while (scoresCount > 0);
@@ -350,7 +352,7 @@ function insertPlayer(
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number,
-    p: Player
+    p: SerializedPlayer
 ): void {
     const start = offset++;
     const id = encoder.encode(p.id);
@@ -483,7 +485,8 @@ function extractPlayer(
     offset: number
 ): SerializedPlayer {
     const playerBytes = view.getUint8(offset++);
-    
+    const start = offset;
+
     const idBytes = view.getUint8(offset++);
     const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
     offset += idBytes;
@@ -494,7 +497,34 @@ function extractPlayer(
 
     const sprite = view.getUint8(offset++);
 
-    const effectBytes
+    const effectBytes = view.getUint8(offset++);
+    const effect = decoder.decode(u8view.subarray(offset, offset + effectBytes));
+    offset += effectBytes;
+
+    const direction = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const x = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const y = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const hp = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
+
+    if (playerBytes !== (offset - start)) {
+        console.error('Error During UPDATE Packet Read @Player');
+    }
+
+    return {
+        id,
+        username,
+        sprite,
+        effect,
+        direction,
+        x,
+        y,
+        hp
+    }
+
 }
 
 function extractBullet(
@@ -503,7 +533,23 @@ function extractBullet(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): SerializedEntity {
-    throw new Error("Function not implemented.");
+    const start = offset;
+    const bulletBytes = view.getUint8(offset++);
+
+    const idBytes = view.getUint8(offset++);
+    const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
+    offset += idBytes;
+
+    const x = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const y = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+
+    if (bulletBytes !== (offset - start)) {
+        console.error('Error During UPDATE Packet Read @Bullet');
+    }
+
+    return { id, x, y }
 }
 
 function extractHazard(
@@ -512,15 +558,57 @@ function extractHazard(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): SerializedHazard {
-    throw new Error("Function not implemented.");
+    const start = offset;
+    const hazardBytes = view.getUint8(offset++);
+
+    const idBytes = view.getUint8(offset++);
+    const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
+    offset += idBytes;
+
+    const sprite = view.getUint8(offset++);
+
+    const x = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const y = view.getFloat32(offset, true);
+    offset += FLOAT32_SIZE;
+    const onCooldown = Boolean(view.getUint8(offset++));
+
+    if (hazardBytes !== (offset - start)) {
+        console.error('Error During UPDATE Packet Read @Bullet');
+    }
+
+    return {
+        id,
+        sprite,
+        onCooldown,
+        x,
+        y
+    }
 }
 
-function extractScore(
+function extractBoardEntry(
     decoder: TextDecoder,
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): Score {
-    throw new Error("Function not implemented.");
+    const start = offset++;
+    const scoreBytes = view.getUint8(offset++);
+
+    const userBytes = view.getUint8(offset++);
+    const username = decoder.decode(u8view.subarray(offset, offset + userBytes));
+    offset += userBytes;
+
+    const score = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
+
+    if (scoreBytes !== (offset - start)) {
+        console.error('Error During UPDATE Packet Read @Score');
+    }
+
+    return {
+        username,
+        score
+    }
 }
 
