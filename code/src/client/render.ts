@@ -1,6 +1,6 @@
 import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState } from './state';
-import CONSTANTS from '../shared/constants';
+import CONSTANTS, { HAZARDS } from '../shared/constants';
 import { debounce } from 'throttle-debounce';
 import { getSoundState } from './settings';
 
@@ -99,7 +99,7 @@ k.scene('arena', () => {
 
         if (hazards) {
             for (const h of hazards) {
-                if (!h.onCooldown || h.sprite === CONSTANTS.HAZARD_SPRITES[2] || h.sprite === CONSTANTS.HAZARD_SPRITES[4]) {
+                if (!h.onCooldown || h.sprite === HAZARDS.Flame || h.sprite === HAZARDS.Spider_Web) {
                     drawHazard(h)
                 }
             }
@@ -238,9 +238,9 @@ function drawPlayer(player: Player, isMe: boolean) {
 
 function drawHazard(hazard: SerializedHazard) {
     if (!isDrawable(hazard.x, hazard.y)) return;
-    const scale = hazard.sprite === CONSTANTS.HAZARD_SPRITES[3] ? 0.6 : 1;
+    const scale = hazard.sprite === HAZARDS.Steel ? 0.6 : 1;
     k.drawSprite({
-        sprite: hazard.sprite,
+        sprite: HAZARDS[hazard.sprite].toLowerCase(),
         anchor: 'center',
         scale,
         pos: k.vec2(hazard.x, hazard.y)
