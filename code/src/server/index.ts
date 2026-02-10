@@ -15,6 +15,7 @@ const uWSapp = uws.App();
 const game = new Game(uWSapp);
 
 uWSapp.ws<Socket>('/*', {
+    closeOnBackpressureLimit: true,
     upgrade: (res, req, ctx) => {
         res.upgrade(
             { id: crypto.randomUUID().substring(0,5) },

@@ -5,7 +5,7 @@ import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
 import { topScores } from './leaderboard';
 import { write } from 'node:fs';
-import { writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
+import { getPacketType, MSG_TYPES, readChatMessagePacket, readEventPacket, readNotifyPacket, readUpdatePacket, writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = new WebSocket(`${socketProtocol}://${window.location.host}`);
@@ -19,13 +19,50 @@ const connected = new Promise<WebSocket>(resolve => {
 
 })
 
-
+const pingSpan = document.getElementById('ping')!;
+let pingprinter: null|PingPrinter = null;
 export const connect = (onGameOver: GameCallback) =>  (
     connected.then((ws) => {
+        pingprinter = new PingPrinter(pingSpan);
         ws.onmessage = ({ data }) => {
+            console.log(data)
             if (!(data instanceof ArrayBuffer)) {
-                
+                console.log('Not binary message from server');
+                ws.close();
             }
+
+
+            const type = getPacketType(data);
+            switch (type) {
+                case MSG_TYPES.CHAT_MESSAGE: {
+                    const packet = readChatMessagePacket(data);
+                    onChatMessage(packet);
+                    break;
+                }
+                case MSG_TYPES.NOTIFY_JOIN: {
+                    const packet  = readNotifyPacket(data);
+                    onJoinNotify(packet);
+                    break;
+                }
+                case MSG_TYPES.NOTIFY_LEFT: {
+                    const packet  = readNotifyPacket(data);
+                    onLeftNotify(packet);
+                    break;
+                }
+                case MSG_TYPES.NOTIFY_EVENT: {
+                    const packet  = readEventPacket(data);
+                    drawEventNotification(packet);
+                    break;
+                }
+                case MSG_TYPES.GAME_UPDATE: {
+                    pingprinter?.addUpdate();
+                    const update = readUpdatePacket(data);
+                    processGameUpdate(update);
+                    break;
+                }
+                    
+            }
+
         }
 
         ws.onclose = () => {
@@ -39,53 +76,17 @@ export const connect = (onGameOver: GameCallback) =>  (
     })
 );
 
-
-/**
- * PREVIOUS IMPLEMENTAION ON SOCKET.IO
- */
-// const pingSpan = document.getElementById('ping')!;
-// let pingprinter: null|PingPrinter = null;
-
-// export const connect = (onGameOver: GameCallback) => (
-//     connected.then(() => {
-//         pingprinter = new PingPrinter(pingSpan);
-
-//         socket.on(CONSTATANTS.MSG_TYPES.GAME_UPDATE, (update: GameState) => {
-//             pingprinter?.addUpdate()
-//             processGameUpdate(update)
-//         });
-        
-//         socket.on(CONSTATANTS.MSG_TYPES.GAME_OVER, onGameOver);
-//         socket.on(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, onChatMessage);
-//         socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_JOIN, onJoinNotify);
-//         socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_LEFT, onLeftNotify);
-//         socket.on(CONSTATANTS.MSG_TYPES.NOTIFY_EVENT, drawEventNotification);
-//         socket.on(CONSTATANTS.MSG_TYPES.TOP_SCORES, topScores)
-
-//         socket.on('disconnect', () => {
-//             console.log('Disconnected from server');
-//             document.getElementById('disconnect-modal')?.classList.remove('hidden');
-//             document.getElementById('reconnect-button')!.onclick = () => {
-//                 window.location.reload();
-//             }
-//         })
-//     })
-// )
-
 export const play = (username: string, sprite: string) => {
-    // socket.emit(CONSTATANTS.MSG_TYPES.JOIN_GAME, username, sprite);
     const packet = writeJoinPacket(username, sprite);
     socket.send(packet);
 }
 
 export const updateDirection = throttle(20, (dir:number) => {
-    // socket.emit(CONSTATANTS.MSG_TYPES.INPUT, dir);
     const packet = writeInputPacket(dir);
     socket.send(packet);
 })
 
 export const sendMessage = (message: string) => {
-    // socket.emit(CONSTATANTS.MSG_TYPES.CHAT_MESSAGE, message)
     const packet = writeMessagePacket(message);
     socket.send(packet);
 }

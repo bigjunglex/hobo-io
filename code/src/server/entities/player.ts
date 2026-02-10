@@ -6,7 +6,7 @@ export class Player extends Entity {
     public fireCooldown: number;
     public hp: number;
     public username: string;
-    public sprite: string;
+    public sprite: number;
     public fireRate: number;
     public effect: string|undefined;
     public effectTimeout: NodeJS.Timeout|null;
@@ -20,7 +20,7 @@ export class Player extends Entity {
             CONSTANTS.PLAYER_SPEED
         )
         
-        this.sprite = sprite;
+        this.sprite = +sprite;
         this.username = username;
         this.hp = CONSTANTS.PLAYER_MAX_HP;
         this.fireCooldown = 0;

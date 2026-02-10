@@ -233,6 +233,7 @@ export function readScoresPacket(packet: ArrayBuffer): ScoreData[] {
     return JSON.parse(json)
 }
 
+let count = 0;
 
 export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     const encoder = new TextEncoder();
@@ -248,29 +249,29 @@ export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     // [ COUNT ] [ ...[LENGTH][PLAYER] ]
     //  ^
     view.setUint8(offset++, gs.others.length + 1);
-    insertPlayer(encoder, view, u8view, offset, gs.me);
+    offset = insertPlayer(encoder, view, u8view, offset, gs.me);
     for (const p of gs.others) {
-        insertPlayer(encoder, view, u8view, offset, p);
+        offset = insertPlayer(encoder, view, u8view, offset, p);
     }
 
     // [ COUNT ] [ ...[LENGTH][BULLET] ]
     //  ^
     view.setUint8(offset++, gs.bullets.length);
     for (const b of gs.bullets) {
-        insertBullet(encoder, view, u8view, offset, b)
+        offset = insertBullet(encoder, view, u8view, offset, b)
     }
 
     // [ COUNT ] [ ...[LENGTH][BULLET] ]
     //  ^
     view.setUint8(offset++, gs.hazards.length);
     for (const h of gs.hazards) {
-        insertHazard(encoder, view, u8view, offset, h);
+        offset = insertHazard(encoder, view, u8view, offset, h);
     }
 
     // [COUNT][... LEADERBOARD ENTRY]
     view.setUint8(offset++, gs.leaderboard.length);
     for (const s of gs.leaderboard) {
-        insertBoardEntry(encoder, view, u8view, offset, s);
+        offset = insertBoardEntry(encoder, view, u8view, offset, s);
     }
 
     view.setUint16(offset, gs.c, true);
@@ -278,9 +279,13 @@ export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     view.setUint16(offset, gs.score, true);
     offset += UINT16_SIZE;
 
-    return buf
+    // console.log('[WRITE] bytes --->  %d  packet ----> %d', offset, ++count)
+
+    const packet = buf.slice(0, offset);
+    return packet
 } 
 
+let readCount = 0;
 
 export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const decoder = new TextDecoder();
@@ -293,35 +298,40 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
 
     const others = [];
     let playersCount = view.getUint8(offset++);
-    do {
-        const player = extractPlayer(decoder, view, u8view, offset);
-        others.push(player);
+    while (playersCount > 0) {
+        const [p, newOffset] = extractPlayer(decoder, view, u8view, offset);
+        others.push(p);
         --playersCount;
-    } while (playersCount > 0);
+        offset = newOffset;
+    };
     
+
     const bullets: SerializedEntity[] = [];
     let bulletsCount = view.getUint8(offset++);
-    do {
-        const bullet = extractBullet(decoder, view, u8view, offset);
-        bullets.push(bullet);
+    while (bulletsCount > 0) {
+        const [b, newOffset] = extractBullet(decoder, view, u8view, offset);
+        bullets.push(b);
         --bulletsCount;
-    } while (bulletsCount > 0);
+        offset = newOffset;
+    };
     
     const hazards: SerializedHazard[] = [];
     let hazardsCount = view.getUint8(offset++);
-    do {
-        const hazard = extractHazard(decoder, view, u8view, offset);
-        hazards.push(hazard);
+    while (hazardsCount > 0) {
+        const [h, newOffset] = extractHazard(decoder, view, u8view, offset);
+        hazards.push(h);
         --hazardsCount;
-    } while (hazardsCount > 0);
+        offset = newOffset;
+    };
     
     const leaderboard: Score[] = [];
     let scoresCount = view.getUint8(offset++);
-    do {
-        const score = extractBoardEntry(decoder, view, u8view, offset);
-        leaderboard.push(score)
+    while (scoresCount > 0) {
+        const [s, newOffset] = extractBoardEntry(decoder, view, u8view, offset);
+        leaderboard.push(s);
         --scoresCount;
-    } while (scoresCount > 0);
+        offset = newOffset;
+    };
 
     const c = view.getUint16(offset, true);
     offset += UINT16_SIZE;
@@ -330,6 +340,8 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
 
     const me = others.shift()!;
     
+    // console.log('[READ] bytes --->  %d  packet ----> %d', offset, ++readCount)
+
     return {
         t,
         me,
@@ -351,7 +363,7 @@ function insertPlayer(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     p: SerializedPlayer
-): void {
+): number {
     const start = offset++;
     const id = encoder.encode(p.id);
     view.setUint8(offset++, id.byteLength);
@@ -363,14 +375,14 @@ function insertPlayer(
     u8view.set(username, offset);
     offset += username.byteLength;
 
+
     view.setUint8(offset++, +p.sprite);
 
     const effect = encoder.encode(p.effect);
     view.setUint8(offset++, effect.byteLength);
-    if (effect.byteLength > 0) {
-        u8view.set(effect, offset);
-        offset += effect.byteLength;
-    }
+    u8view.set(effect, offset);
+    offset += effect.byteLength;
+
 
     view.setFloat32(offset, p.direction, true);
     offset += FLOAT32_SIZE;
@@ -386,6 +398,8 @@ function insertPlayer(
 
     const playerLength = offset - start;
     view.setUint8(start, playerLength);
+
+    return offset
 }
 
 /**
@@ -397,7 +411,7 @@ function insertBullet(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     b: SerializedEntity
-): void {
+): number {
     const start = offset++;
     const id = encoder.encode(b.id);
     view.setUint8(offset++, id.byteLength);
@@ -411,7 +425,9 @@ function insertBullet(
     offset += FLOAT32_SIZE;
 
     const bulletBytes = offset - start;
-    view.setUint8(offset++, bulletBytes);
+    view.setUint8(start, bulletBytes);
+
+    return offset
 }
 
 /**
@@ -427,7 +443,7 @@ function insertHazard(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     h: SerializedHazard
-): void {
+): number {
     const start = offset++;
     const id = encoder.encode(h.id);
     view.setUint8(offset++, id.byteLength);
@@ -446,7 +462,9 @@ function insertHazard(
     view.setUint8(offset++, Number(h.onCooldown));
 
     const hazardBytes = offset - start;
-    view.setUint8(offset++, hazardBytes);
+    view.setUint8(start, hazardBytes);
+
+    return offset
 }
 
 /**
@@ -462,9 +480,10 @@ function insertBoardEntry(
     u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     s: Score
-): void {
+): number {
     const start = offset++;
     const username = encoder.encode(s.username);
+    view.setUint8(offset++, username.byteLength);
     u8view.set(username, offset);
     offset += username.byteLength;
 
@@ -474,6 +493,8 @@ function insertBoardEntry(
 
     const scoreBytes = offset - start;
     view.setUint8(start, scoreBytes);
+
+    return offset
 }
 
 function extractPlayer(
@@ -481,9 +502,8 @@ function extractPlayer(
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
-): SerializedPlayer {
+): [SerializedPlayer, number] {
     const playerBytes = view.getUint8(offset++);
-    const start = offset;
 
     const idBytes = view.getUint8(offset++);
     const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
@@ -508,21 +528,19 @@ function extractPlayer(
     const hp = view.getUint16(offset, true);
     offset += UINT16_SIZE;
 
-    if (playerBytes !== (offset - start)) {
-        console.error('Error During UPDATE Packet Read @Player');
-    }
-
-    return {
-        id,
-        username,
-        sprite,
-        effect,
-        direction,
-        x,
-        y,
-        hp
-    }
-
+    return [
+        {
+            id,
+            username,
+            sprite,
+            effect,
+            direction,
+            x,
+            y,
+            hp
+        },
+        offset
+    ]
 }
 
 function extractBullet(
@@ -530,10 +548,8 @@ function extractBullet(
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
-): SerializedEntity {
-    const start = offset;
+): [SerializedEntity, number] {
     const bulletBytes = view.getUint8(offset++);
-
     const idBytes = view.getUint8(offset++);
     const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
     offset += idBytes;
@@ -543,11 +559,10 @@ function extractBullet(
     const y = view.getFloat32(offset, true);
     offset += FLOAT32_SIZE;
 
-    if (bulletBytes !== (offset - start)) {
-        console.error('Error During UPDATE Packet Read @Bullet');
-    }
-
-    return { id, x, y }
+    return [
+        { id, x, y },
+        offset
+    ]
 }
 
 function extractHazard(
@@ -555,14 +570,11 @@ function extractHazard(
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
-): SerializedHazard {
-    const start = offset;
+): [SerializedHazard, number] {
     const hazardBytes = view.getUint8(offset++);
-
-    const idBytes = view.getUint8(offset++);
+    const idBytes = view.getUint8(offset++); 
     const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
     offset += idBytes;
-
     const sprite = view.getUint8(offset++);
 
     const x = view.getFloat32(offset, true);
@@ -571,17 +583,17 @@ function extractHazard(
     offset += FLOAT32_SIZE;
     const onCooldown = Boolean(view.getUint8(offset++));
 
-    if (hazardBytes !== (offset - start)) {
-        console.error('Error During UPDATE Packet Read @Bullet');
-    }
 
-    return {
-        id,
-        sprite,
-        onCooldown,
-        x,
-        y
-    }
+    return [
+        {
+            id,
+            sprite,
+            onCooldown,
+            x,
+            y
+        },
+        offset
+    ] 
 }
 
 function extractBoardEntry(
@@ -589,10 +601,8 @@ function extractBoardEntry(
     view: DataView<ArrayBuffer>,
     u8view: Uint8Array<ArrayBuffer>,
     offset: number
-): Score {
-    const start = offset++;
+): [Score, number] {
     const scoreBytes = view.getUint8(offset++);
-
     const userBytes = view.getUint8(offset++);
     const username = decoder.decode(u8view.subarray(offset, offset + userBytes));
     offset += userBytes;
@@ -600,13 +610,9 @@ function extractBoardEntry(
     const score = view.getUint16(offset, true);
     offset += UINT16_SIZE;
 
-    if (scoreBytes !== (offset - start)) {
-        console.error('Error During UPDATE Packet Read @Score');
-    }
-
-    return {
-        username,
-        score
-    }
+    return [
+        { username, score },
+        offset
+    ]
 }
 

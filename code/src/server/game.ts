@@ -32,6 +32,7 @@ export class Game {
     private db: DbRunner;
     private boundUpdate:() => void;
 
+
     constructor(app: uws.TemplatedApp) {
         this.sockets = {};
         this.players = {};
@@ -141,14 +142,14 @@ export class Game {
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
                     const packet = writeUpdatePacket(update);
-                    process.nextTick(() => socket.send(packet, true))
+                    socket.send(packet, true);
             })
             this.shouldSendUpdate = false;
         } else {
             this.shouldSendUpdate = true;
         }
 
-        setTimeout(this.boundUpdate, Math.max(1000 / 40 - dt))
+        setTimeout(this.boundUpdate, Math.max(0, 1000 / 40 - dt))
     }
 
     serializeState(): GlobalState {
