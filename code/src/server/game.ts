@@ -142,7 +142,7 @@ export class Game {
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
                     const packet = writeUpdatePacket(update);
-                    socket.send(packet, true);
+                    process.nextTick(() => socket.send(packet, true));
             })
             this.shouldSendUpdate = false;
         } else {

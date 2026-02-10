@@ -237,7 +237,7 @@ let count = 0;
 
 export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     const encoder = new TextEncoder();
-    const buf = new ArrayBuffer(4096)
+    const buf = new ArrayBuffer(4096 * 2)
     const view = new DataView(buf);
     const u8view = new Uint8Array(buf);
     

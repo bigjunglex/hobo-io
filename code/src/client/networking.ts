@@ -30,7 +30,7 @@ export const connect = (onGameOver: GameCallback) =>  (
                 console.log('Not binary message from server');
                 ws.close();
             }
-
+ 
 
             const type = getPacketType(data);
             switch (type) {

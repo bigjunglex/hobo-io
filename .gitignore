@@ -3,3 +3,6 @@ code/.env
 code/dist/
 code/dist-client/
 code/*.db
+
+# for now local tests ignored
+code/src/*.test.ts

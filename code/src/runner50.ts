@@ -1,8 +1,9 @@
-import { io, Socket } from "socket.io-client";
 import { setTimeout } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
 import customParser from "socket.io-msgpack-parser";
 import CONSTANTS from "./shared/constants.js";
+import { WebSocket } from "node:http";
+import { writeInputPacket, writeJoinPacket } from "./shared/messages.js";
 
 type Stats = {
     connected: number;
@@ -15,7 +16,7 @@ type Stats = {
 class LoadTester {
     private url: string;
     private count:number;
-    private sockets: Socket[];
+    private sockets: any[];
     private stats: Stats;
 
     constructor(url: string, count:number) {
@@ -45,17 +46,16 @@ class LoadTester {
     }
 
     async connectPlayer() {
-        const socket = io(this.url, { reconnection: false, parser: customParser });
-        await new Promise<void>(resolve => {
-            socket.on('connect', () => {
+        const socket = new WebSocket(this.url);
+        await new Promise<void>(resolve => 
+            socket.onopen = () => {
                 this.stats.connected++
                 resolve();
-            })
         })
 
         let lastUpdate = performance.now();
 
-        socket.on(CONSTANTS.MSG_TYPES.GAME_UPDATE, () => {
+        socket.onmessage = () => {
             const now = performance.now()
             const ping = now - lastUpdate;
             lastUpdate = now;
@@ -63,17 +63,18 @@ class LoadTester {
                 this.stats.maxLatency = ping
             }
             this.stats.latency.push(ping)
-        });
-        socket.on(CONSTANTS.MSG_TYPES.GAME_OVER, () => this.onGameOver(socket));
-        socket.on('connect_error', (err) => {
+        };
+
+        socket.onerror = (err) => {
             this.stats.errors++
             console.log(err)
-        })
+        };
 
         const spriteId = Math.floor(Math.random() * 4)
         const name = 'CPU-' + crypto.randomUUID().substring(0,3);
 
-        socket.emit(CONSTANTS.MSG_TYPES.JOIN_GAME, name, spriteId > 3 ? 3 : spriteId)
+        const joinPacket = writeJoinPacket(name, `${spriteId > 3 ? 3 : spriteId}`)
+        socket.send(joinPacket);
         this.sockets.push(socket);
     }
 
@@ -89,9 +90,10 @@ class LoadTester {
         };
     }
 
-    generateInput(socket:Socket) {
-        const dir = Math.random() * Math.PI * 2;;
-        socket.emit(CONSTANTS.MSG_TYPES.INPUT, dir)
+    generateInput(socket: WebSocket) {
+        const dir = Math.random() * Math.PI * 2;
+        const packet = writeInputPacket(dir);
+        socket.send(packet)
     }
 
     run() {
@@ -100,9 +102,9 @@ class LoadTester {
         }, 2000)
     }
 
-    onGameOver(s: Socket) {
+    onGameOver(s: WebSocket) {
         this.stats.gamesOver++
-        s.disconnect();
+        s.close();
     }
 
     printStats(t: number) {
