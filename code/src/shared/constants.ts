@@ -50,8 +50,12 @@ const CONSTANTS = {
         HAZARDS: 10_000
     },
 
-    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'], // TODO: Rewrite to enum in msg
 
+    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'], // TODO: Rewrite to enum in msg
+    /**
+     * UINT16 max size
+     */
+    MAX_ID:  65535,
 } as const;
 
 export enum HAZARDS {

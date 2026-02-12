@@ -51,7 +51,31 @@ export class BulletPool {
 export class BufferPool {/** TODO, since its mostly usable on server, mb use Buffer module??? */ };
 
 export class idRegistry {
-    constructor() {
-        
+    private ready: number[];
+    private next: number;
+    private max: number;
+
+    constructor(size: number) {
+        this.max = size;
+        this.next = 0;
+        this.ready = [];
+    }
+
+    getId(): number {
+        if (this.ready.length > 0) {
+            return this.ready.pop()!;
+        }
+
+        if (this.next < this.max) {
+            const id = this.next;
+            this.next++;
+            return id
+        }
+
+        throw Error('No IDs within limits have left');
+    }
+
+    release(id: number): void {
+        this.ready.push(id);
     }
 }

@@ -8,10 +8,12 @@ import expressify from "uwebsockets-express";
 import { Game } from './game.js'
 import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writeScoresPacket } from "../shared/messages.js";
 import CONSTANTS from "../shared/constants.js";
+import { idRegistry } from "./utils.js";
 
 
 const PORT = 7878;
 const uWSapp = uws.App();
+const idReg = new idRegistry(CONSTANTS.MAX_ID);
 const game = new Game(uWSapp);
 
 uWSapp.ws<Socket>('/*', {
@@ -29,7 +31,7 @@ uWSapp.ws<Socket>('/*', {
         const topScores = game.getTopScores() as ScoreData[];
         const packet = writeScoresPacket(topScores);
         ws.subscribe(CONSTANTS.NOTIFY_CHANNEL);
-        ws.send(packet, true);
+        setImmediate(() => ws.send(packet, true));
     },
     message: (ws, packet, isB) => { 
         if (!isB) {
