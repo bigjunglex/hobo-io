@@ -1,4 +1,4 @@
-import CONSTANTS, { HAZARDS } from "../../../shared/constants.js";
+import CONSTANTS, { EFFECTS, HAZARDS } from "../../../shared/constants.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -11,13 +11,13 @@ function shieldEffect(this:Hazard, player: Player) {
     player.speed = CONSTANTS.PLAYER_SPEED * 0.5;
     player.fireRate = 0;
     player.fireCooldown = 7000;
-    player.effect = CONSTANTS.PLAYER_EFFECT_SHIELD;
+    player.effect = EFFECTS.Shield;
 
     setTimeout(() => {
         player.speed = CONSTANTS.PLAYER_SPEED;
         player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         player.fireCooldown = 0;
-        player.effect = undefined;
+        player.effect = EFFECTS.Null;
 
         this.onCooldown = false;
         this.reposition();

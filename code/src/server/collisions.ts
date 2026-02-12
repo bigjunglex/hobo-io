@@ -1,4 +1,4 @@
-import CONSTANTS from "../shared/constants.js";
+import CONSTANTS, { EFFECTS } from "../shared/constants.js";
 import { Bullet } from "./entities/bullet.js";
 import { Hazard } from "./entities/hazard.js";
 import { Player } from "./entities/player.js";
@@ -17,7 +17,7 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
                 bullet.parentID !== player.id &&
                 player.distanceToSq(bullet) <= collideRange
             ) {
-                if (player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD && shieldAndBulletFacing(player, bullet)) {
+                if (player.effect === EFFECTS.Shield && shieldAndBulletFacing(player, bullet)) {
                     destroyedBullets.push(bullet);
                     break;
                 } else {
@@ -41,7 +41,7 @@ export function applyCollisions(players: Player[], bullets: Bullet[], hazards: H
 
     for (let i = 0; i < players.length; i++) {
         const collider = players[i];
-        if (collider.effect !== CONSTANTS.PLAYER_EFFECT_SHIELD) {
+        if (collider.effect !== EFFECTS.Shield) {
             continue;
         } else {
             for (let j = 0; j < players.length; j++) {

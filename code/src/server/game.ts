@@ -149,7 +149,7 @@ export class Game {
             this.shouldSendUpdate = true;
         }
 
-        setTimeout(this.boundUpdate, Math.max(0, 1000 / 40 - dt))
+        setTimeout(this.boundUpdate, Math.max(0, CONSTANTS.TICK_RATE - dt))
     }
 
     serializeState(): GlobalState {

@@ -375,14 +375,8 @@ function insertPlayer(
     u8view.set(username, offset);
     offset += username.byteLength;
 
-
     view.setUint8(offset++, +p.sprite);
-
-    const effect = encoder.encode(p.effect);
-    view.setUint8(offset++, effect.byteLength);
-    u8view.set(effect, offset);
-    offset += effect.byteLength;
-
+    view.setUint8(offset++, p.effect);
 
     view.setFloat32(offset, p.direction, true);
     offset += FLOAT32_SIZE;
@@ -514,11 +508,8 @@ function extractPlayer(
     offset += userBytes;
 
     const sprite = view.getUint8(offset++);
-
-    const effectBytes = view.getUint8(offset++);
-    const effect = decoder.decode(u8view.subarray(offset, offset + effectBytes));
-    offset += effectBytes;
-
+    const effect = view.getUint8(offset++);
+    
     const direction = view.getFloat32(offset, true);
     offset += FLOAT32_SIZE;
     const x = view.getFloat32(offset, true);

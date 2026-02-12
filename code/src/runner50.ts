@@ -57,7 +57,7 @@ class LoadTester {
 
         socket.onmessage = () => {
             const now = performance.now()
-            const ping = now - lastUpdate;
+            const ping = now - lastUpdate - CONSTANTS.TICK_RATE;
             lastUpdate = now;
             if (ping > this.stats.maxLatency) {
                 this.stats.maxLatency = ping

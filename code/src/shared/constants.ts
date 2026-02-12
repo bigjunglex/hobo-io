@@ -11,6 +11,8 @@ const CONSTANTS = {
         TOP_SCORES: 'top_scores',
     }, // remove after socket.io drop finish
     
+    TICK_RATE: 1000 / 40,
+
     NOTIFY_CHANNEL: 'general',
 
     MAP_SIZE:3000,
@@ -20,9 +22,6 @@ const CONSTANTS = {
     PLAYER_MAX_HP: 1000,
     PLAYER_SPEED: 400,
     PLAYER_FIRE_COOLDOWN: 0.4,
-
-    PLAYER_EFFECT_BOOST: 'boost',
-    PLAYER_EFFECT_SHIELD: 'shield',
     
     BULLET_RADIUS: 3,
     BULLET_SPEED: 800,
@@ -61,6 +60,12 @@ export enum HAZARDS {
     Spider_Web,
     Steel,
     Flame
+}
+
+export enum EFFECTS {
+    Null,
+    Boost,
+    Shield
 }
 
 export default CONSTANTS;

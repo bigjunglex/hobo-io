@@ -1,6 +1,6 @@
 import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState } from './state';
-import CONSTANTS, { HAZARDS } from '../shared/constants';
+import CONSTANTS, { EFFECTS, HAZARDS } from '../shared/constants';
 import { debounce } from 'throttle-debounce';
 import { getSoundState } from './settings';
 
@@ -126,12 +126,12 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
     const effectedPlayers:Player[] = [];
     const aliveEffects:EffectEntry[] = [];
 
-    if (state.me?.effect === CONSTANTS.PLAYER_EFFECT_BOOST) effectedPlayers.push(state.me);
+    if (state.me?.effect === EFFECTS.Boost) effectedPlayers.push(state.me);
 
     for (let i = 0; i < state.others.length; i++) {
         const p = state.others[i];
         if (!isDrawable(p.x, p.y)) continue;
-        if (p?.effect === CONSTANTS.PLAYER_EFFECT_BOOST) effectedPlayers.push(p);
+        if (p?.effect === EFFECTS.Boost) effectedPlayers.push(p);
     }
 
     for (let i = 0; i < effectedPlayers.length; i++) {
@@ -139,9 +139,9 @@ function updateEffects(state: RenderState, effects: EffectEntry[]) {
         const effect = p.effect!;
 
         if (effects.find(e => e.entityID === p.id)) continue;
-        
+        const sprite = EFFECTS[effect].toLowerCase();
         const ref = k.add([
-            k.sprite(effect, { anim: 'anim' }),
+            k.sprite(sprite, { anim: 'anim' }),
             k.scale(0.5),
             k.anchor('center'),
             k.pos(p.x, p.y),
@@ -196,7 +196,7 @@ function drawPlayer(player: Player, isMe: boolean) {
         anchor: 'center',
     })
     
-    if (player?.effect && player.effect === CONSTANTS.PLAYER_EFFECT_SHIELD) {
+    if (player?.effect && player.effect === EFFECTS.Shield) {
         const shieldX = x + 40 * Math.cos(direction - Math.PI / 2); 
         const shieldY = y + 40 * Math.sin(direction - Math.PI / 2);
 

@@ -1,4 +1,4 @@
-import CONSTANTS, { HAZARDS } from "../../../shared/constants.js";
+import CONSTANTS, { EFFECTS, HAZARDS } from "../../../shared/constants.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -10,13 +10,13 @@ function hasteEffect(this:Hazard, player: Player) {
     player.clearEffectTimeout();
     player.speed = CONSTANTS.PLAYER_SPEED * 1.5;
     player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN / 2;
-    player.effect = CONSTANTS.PLAYER_EFFECT_BOOST;
+    player.effect = EFFECTS.Boost;
     player.hp += CONSTANTS.HAZARD_BOOST_HEAL;   
 
     const effectTimeout = setTimeout(() => {
         player.speed = CONSTANTS.PLAYER_SPEED;
         player.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
-        player.effect = undefined;
+        player.effect = EFFECTS.Null;
     }, CONSTANTS.HAZARD_BOOST_DURATION)
 
     player.effectTimeout = effectTimeout;

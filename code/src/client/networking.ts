@@ -105,10 +105,10 @@ class PingPrinter {
 
     addUpdate() {
         const now = performance.now();
-        const dt = now - this.lastUpdate;
+        const dt = now - this.lastUpdate - CONSTATANTS.TICK_RATE;
         this.lastUpdate = now;
         this.deltas.push(dt);
-        if (this.deltas.length > 30) this.setPing(); 
+        if (this.deltas.length > 40) this.setPing(); 
     }
 
     setPing() {

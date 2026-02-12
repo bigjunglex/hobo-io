@@ -1,4 +1,4 @@
-import CONSTANTS from "../../shared/constants.js";
+import CONSTANTS, { EFFECTS } from "../../shared/constants.js";
 import { Entity } from "./entity.js";
 
 export class Player extends Entity {
@@ -8,7 +8,7 @@ export class Player extends Entity {
     public username: string;
     public sprite: number;
     public fireRate: number;
-    public effect: string|undefined;
+    public effect: number;
     public effectTimeout: NodeJS.Timeout|null;
 
     constructor(id: string, username: string, x: number, y: number, sprite: string) {
@@ -26,7 +26,7 @@ export class Player extends Entity {
         this.fireCooldown = 0;
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
-        this.effect = undefined;
+        this.effect = EFFECTS.Null;
         this.effectTimeout = null;
     }
 
@@ -76,7 +76,7 @@ export class Player extends Entity {
         this.fireCooldown = 0;
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
-        this.effect = undefined;
+        this.effect = EFFECTS.Null;
         this.effectTimeout = null;
 
         this.x = x;

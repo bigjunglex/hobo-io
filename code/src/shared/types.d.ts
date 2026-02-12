@@ -16,7 +16,7 @@ type Player = {
     hp: number;
     username: string;
     sprite: number;
-    effect?: string;
+    effect: number;
 } & Position;
 
 type Bullet = {
@@ -52,7 +52,7 @@ type GameState = {
 
 type EffectEntry = {
     entityID: string;
-    type: string;
+    type: number;
     ref: Object;
 }
 
@@ -63,7 +63,7 @@ type SerializedEntity = {
 type SerializedPlayer = SerializedEntity & {
     username: string;
     sprite: number;
-    effect?: string;
+    effect: number;
     direction: number;
     hp: number
 }
