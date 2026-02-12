@@ -7,6 +7,7 @@ export enum MSG_TYPES {
     NOTIFY_LEFT,
     NOTIFY_EVENT,
     TOP_SCORES,
+    PLAYER_ID_MAP,
 }
 
 
@@ -233,7 +234,6 @@ export function readScoresPacket(packet: ArrayBuffer): ScoreData[] {
     return JSON.parse(json)
 }
 
-let count = 0;
 
 export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     const encoder = new TextEncoder();
@@ -279,13 +279,9 @@ export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     view.setUint16(offset, gs.score, true);
     offset += UINT16_SIZE;
 
-    // console.log('[WRITE] bytes --->  %d  packet ----> %d', offset, ++count)
-
     const packet = buf.slice(0, offset);
     return packet
 } 
-
-let readCount = 0;
 
 export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const decoder = new TextDecoder();
@@ -340,8 +336,6 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
 
     const me = others.shift()!;
     
-    // console.log('[READ] bytes --->  %d  packet ----> %d', offset, ++readCount)
-
     return {
         t,
         me,
@@ -607,3 +601,20 @@ function extractBoardEntry(
     ]
 }
 
+export function writePlayersIDMapPacket(players: Record<number, string>): ArrayBuffer {
+    const payload = new TextEncoder().encode(JSON.stringify(players));
+    const size = UINT8_SIZE + payload.byteLength;
+    const buf = new ArrayBuffer(size);
+    const view = new Uint8Array(buf);
+
+    view[0] = MSG_TYPES.PLAYER_ID_MAP;
+    view.set(payload, 1);
+
+    return buf
+}
+
+export function readPlayersIDMapPacket(packet: ArrayBuffer): Record<number, string> {
+    const view = new Uint8Array(packet);
+    const json = new TextDecoder().decode(view.subarray(1));
+    return JSON.parse(json)
+}

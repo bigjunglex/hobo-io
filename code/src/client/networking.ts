@@ -1,11 +1,11 @@
 import { throttle } from 'throttle-debounce';
 import CONSTATANTS from '../shared/constants';
-import { processGameUpdate } from './state';
+import { MAP_ACTIONS, processGameUpdate, updateIDMap } from './state';
 import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
 import { topScores } from './leaderboard';
 import { write } from 'node:fs';
-import { getPacketType, MSG_TYPES, readChatMessagePacket, readEventPacket, readNotifyPacket, readUpdatePacket, writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
+import { getPacketType, MSG_TYPES, readChatMessagePacket, readEventPacket, readNotifyPacket, readPlayersIDMapPacket, readScoresPacket, readUpdatePacket, writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
 const socket = new WebSocket(`${socketProtocol}://${window.location.host}`);
@@ -21,7 +21,7 @@ const connected = new Promise<WebSocket>(resolve => {
 
 const pingSpan = document.getElementById('ping')!;
 let pingprinter: null|PingPrinter = null;
-export const connect = (onGameOver: GameCallback) =>  (
+export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, STAYS HERE FOR A BIT */) =>  (
     connected.then((ws) => {
         pingprinter = new PingPrinter(pingSpan);
         ws.onmessage = ({ data }) => {
@@ -31,7 +31,6 @@ export const connect = (onGameOver: GameCallback) =>  (
                 ws.close();
             }
  
-
             const type = getPacketType(data);
             switch (type) {
                 case MSG_TYPES.CHAT_MESSAGE: {
@@ -42,11 +41,14 @@ export const connect = (onGameOver: GameCallback) =>  (
                 case MSG_TYPES.NOTIFY_JOIN: {
                     const packet  = readNotifyPacket(data);
                     onJoinNotify(packet);
+                    // const id = +packet.id
+                    // updateIDMap(MAP_ACTIONS.Join, {id: packet.username})
                     break;
                 }
                 case MSG_TYPES.NOTIFY_LEFT: {
                     const packet  = readNotifyPacket(data);
                     onLeftNotify(packet);
+                    // updateIDMap(MAP_ACTIONS.Left, packet.id)
                     break;
                 }
                 case MSG_TYPES.NOTIFY_EVENT: {
@@ -58,6 +60,16 @@ export const connect = (onGameOver: GameCallback) =>  (
                     pingprinter?.addUpdate();
                     const update = readUpdatePacket(data);
                     processGameUpdate(update);
+                    break;
+                }
+                case MSG_TYPES.TOP_SCORES: {
+                    const packet = readScoresPacket(data);
+                    topScores(packet);
+                    break;
+                }
+                case MSG_TYPES.PLAYER_ID_MAP: {
+                    const packet = readPlayersIDMapPacket(data);
+                    // updateIDMap(MAP_ACTIONS.Init, packet);
                     break;
                 }
                     
@@ -105,9 +117,9 @@ class PingPrinter {
 
     addUpdate() {
         const now = performance.now();
-        const dt = now - this.lastUpdate - CONSTATANTS.TICK_RATE;
+        const dt = now - this.lastUpdate - CONSTATANTS.TICK_RATE * 2; // updates sent every other tick
         this.lastUpdate = now;
-        this.deltas.push(dt);
+        this.deltas.push(Math.max(0, dt));
         if (this.deltas.length > 40) this.setPing(); 
     }
 

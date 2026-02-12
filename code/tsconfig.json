@@ -10,7 +10,6 @@
         ],
         "types": [
             "node",
-            "socket.io",
             "express",
         ],
         "sourceMap": true,

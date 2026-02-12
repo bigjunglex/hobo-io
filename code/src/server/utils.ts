@@ -47,3 +47,11 @@ export class BulletPool {
         return this.pool.length
     }
 }
+
+export class BufferPool {/** TODO, since its mostly usable on server, mb use Buffer module??? */ };
+
+export class idRegistry {
+    constructor() {
+        
+    }
+}

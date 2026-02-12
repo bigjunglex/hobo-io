@@ -1,8 +1,16 @@
 import { updateLeaderboard, updateMyScore, updatePlayerCount } from "./leaderboard";
 
+export enum MAP_ACTIONS {
+    Init,
+    Join,
+    Left
+}
+
 const RENDER_DELAY = 100;
 
 const gameUpdates:GameState[] = [];
+const playerIdMap: Map<number, string> = new Map();
+
 let gameStart = 0;
 let firstServerTimestamp = 0;
 
@@ -97,4 +105,38 @@ function interpolateDirection(from: number, to: number, ratio: number): any {
     } else {
         return from + (to - from) * ratio
     }
+}
+
+
+export function updateIDMap(action: MAP_ACTIONS, packet: Record<number, string> | number) {
+    switch (action) {
+        case MAP_ACTIONS.Init: {
+            if (typeof packet !== 'object') {
+                return;
+            }
+
+            for (const id of Object.values(packet)) {
+                playerIdMap.set(+id, packet[+id])
+            }
+            break;
+        }
+        case MAP_ACTIONS.Join: {
+            if (typeof packet !== 'object') {
+                return;
+            }
+            const [id, username] = Object.entries(packet)[0];
+            playerIdMap.set(+id, username);
+            break;
+        }
+        case MAP_ACTIONS.Left: {
+            if (typeof packet !== 'number') {
+                return;
+            }
+            playerIdMap.delete(packet);
+        }
+    }
+}
+
+export function getUsernameById(id:number): string {
+    return playerIdMap.get(id) ?? 'Anonymous';
 }

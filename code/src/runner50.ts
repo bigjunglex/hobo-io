@@ -1,6 +1,5 @@
 import { setTimeout } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
-import customParser from "socket.io-msgpack-parser";
 import CONSTANTS from "./shared/constants.js";
 import { WebSocket } from "node:http";
 import { writeInputPacket, writeJoinPacket } from "./shared/messages.js";
@@ -57,7 +56,7 @@ class LoadTester {
 
         socket.onmessage = () => {
             const now = performance.now()
-            const ping = now - lastUpdate - CONSTANTS.TICK_RATE;
+            const ping = now - lastUpdate - CONSTANTS.TICK_RATE * 2; // updates sent every other tick
             lastUpdate = now;
             if (ping > this.stats.maxLatency) {
                 this.stats.maxLatency = ping
