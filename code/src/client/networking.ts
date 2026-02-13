@@ -28,7 +28,6 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
     connected.then((ws) => {
         pingprinter = new PingPrinter(pingSpan);
         ws.onmessage = ({ data }) => {
-            console.log(data)
             if (!(data instanceof ArrayBuffer)) {
                 console.log('Not binary message from server');
                 ws.close();
@@ -44,8 +43,8 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
                 case MSG_TYPES.NOTIFY_JOIN: {
                     const packet  = readNotifyPacket(data, decoder);
                     onJoinNotify(packet);
-                    // const id = +packet.id
-                    // updateIDMap(MAP_ACTIONS.Join, {id: packet.username})
+                    const id = +packet.id
+                    updateIDMap(MAP_ACTIONS.Join, { [id]: packet.username })
                     break;
                 }
                 case MSG_TYPES.NOTIFY_LEFT: {

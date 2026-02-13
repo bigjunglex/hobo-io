@@ -64,14 +64,12 @@ export class idRegistry {
     getId(): number {
         if (this.ready.length > 0) {
             const id = this.ready.pop()!
-            console.log('reused id', id)
             return id;
         }
 
         if (this.next < this.max) {
             const id = this.next;
             this.next++;
-            console.log('new id', id)
             return id
         }
 
@@ -80,6 +78,5 @@ export class idRegistry {
 
     release(id: number): void {
         this.ready.push(id);
-        console.log('released id', id);
     }
 }

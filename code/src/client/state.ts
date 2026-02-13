@@ -125,6 +125,7 @@ export function updateIDMap(action: MAP_ACTIONS, packet: Record<string, string> 
                 return;
             }
             const [id, username] = Object.entries(packet)[0];
+
             playerIdMap.set(+id, username);
             break;
         }
