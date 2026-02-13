@@ -115,7 +115,7 @@ export function updateIDMap(action: MAP_ACTIONS, packet: Record<string, string> 
                 return;
             }
 
-            for (const id of Object.values(packet)) {
+            for (const id of Object.keys(packet)) {
                 playerIdMap.set(parseInt(id), packet[id])
             }
             break;
