@@ -3,7 +3,7 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter } from "./utils.js";
+import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
@@ -19,6 +19,10 @@ type EffectApplicator = (p: Player) => void;
 type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
+    private static registry = new idRegistry(CONSTANTS.MAX_ID); 
+    public static encoder = new TextEncoder();
+    public static decoder = new TextDecoder();
+
     private sockets: Record<string, uws.WebSocket<Socket>>;
     private players: Record<string, Player>;
     private bullets: Bullet[];
@@ -66,8 +70,8 @@ export class Game {
             this.effectApplicator(this.players[id]);
         }
 
-        const packet = writeNotifyPacket({ username, time }, true) 
-        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
+        const packet = writeNotifyPacket({ username, time, id }, true, Game.encoder) 
+        setImmediate(() => this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true));
     }
 
     removePlayer( socket: uws.WebSocket<Socket> ) {
@@ -78,8 +82,18 @@ export class Game {
         delete this.sockets[id];
         delete this.players[id];
 
-        const packet = writeNotifyPacket({ username, time }, false);
-        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true);
+        const packet = writeNotifyPacket({ username, time, id }, false, Game.encoder);
+        setImmediate(() => this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true));
+    }
+
+    getIdMap(): Record<string, string> {
+        const players = this.players;
+        const map: Record<string, string> = {};
+        for (let id of Object.keys(players)) {
+            map[id] = players[id].username;
+        }
+
+        return map;
     }
 
     handleInput(socket: uws.WebSocket<Socket>, dir: number) {
@@ -96,6 +110,7 @@ export class Game {
         this.bullets.forEach(bullet => {
             if (bullet.update(dt)) {
                 bulletsToRemove.push(bullet);
+                Game.registry.release(bullet.id);
                 this.bulletPool.release(bullet);
             }
         })
@@ -105,7 +120,8 @@ export class Game {
             const player = this.players[id];
             const newBulletReq = player.update(dt);
             if (newBulletReq){
-                const newBullet = this.bulletPool.recieve(player.id, player.x, player.y, player.direction)
+                const id = Game.registry.getId()
+                const newBullet = this.bulletPool.recieve(player.id, id, player.x, player.y, player.direction)
                 this.bullets.push(newBullet);
             }
         })
@@ -120,7 +136,9 @@ export class Game {
         destroyedBullets.forEach(b => {
             const player = this.players[b.parentID]
             if (player) player.onDealtDamage();
-            this.bulletPool.release(b)
+            const id = b.id;
+            this.bulletPool.release(b);
+            Game.registry.release(id);
         })
 
         this.bullets = this.bullets.filter(b => !destroyedBullets.includes(b))
@@ -130,7 +148,7 @@ export class Game {
             if (player.hp <= 0) {
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
-                this.db.insertScore(player.score, player.username);
+                setImmediate(() => this.db.insertScore(player.score, player.username));
                 player.respawn(x, y)
             }
         })
@@ -202,18 +220,20 @@ export class Game {
             .slice(0,5)
             .map( p => ({username: p.username, score: Math.round(p.score)}))
     }
-
+    /**
+     * needs better hazzards generator TODO
+     */
     generateHazards(): Hazard[] {
         const hazards: Hazard[] = []
 
         for (let i = 0; i < CONSTANTS.BASE_HAZARD_COUNT; i++) {
-            const web = createWebHazzard(getRandomCoords(), getRandomCoords());
-            const flame = createFlameHazzard(getRandomCoords(), getRandomCoords());
+            const web = createWebHazzard(getRandomCoords(), getRandomCoords(), Game.registry);
+            const flame = createFlameHazzard(getRandomCoords(), getRandomCoords(), Game.registry);
             
             if (i % 2 === 0) {
-                const haste = createBoostHazzard(getRandomCoords(), getRandomCoords());
-                const shield = createShieldHazzard(getRandomCoords(), getRandomCoords());
-                const portal = createPortalHazzard(getRandomCoords(), getRandomCoords());
+                const haste = createBoostHazzard(getRandomCoords(), getRandomCoords(), Game.registry);
+                const shield = createShieldHazzard(getRandomCoords(), getRandomCoords(), Game.registry);
+                const portal = createPortalHazzard(getRandomCoords(), getRandomCoords(), Game.registry);
                 hazards.push(portal, haste, shield);
             }
 
@@ -226,8 +246,8 @@ export class Game {
     chatMessage(socket:uws.WebSocket<Socket>, message: string) {
         const username = this.players[socket.getUserData().id].username;
         const time = Date.now();
-        const packet = writeChatMessagePacket({ username, message, time });
-        this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true);
+        const packet = writeChatMessagePacket({ username, message, time }, Game.encoder);
+        setImmediate(() => this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true));
     }
 
     getTopScores() {
@@ -242,7 +262,7 @@ export class Game {
             applicator(p)
         }
 
-        const packet = writeEventPacket(eventName);
+        const packet = writeEventPacket(eventName, Game.encoder);
         this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
 
         setTimeout(() => {
@@ -257,10 +277,14 @@ export class Game {
     hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
         const hazards = [ ...this.hazards ];
         transformer(this.hazards);
-        const packet = writeEventPacket(eventName);
+        const packet = writeEventPacket(eventName, Game.encoder);
         this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
         
-        setTimeout(() => this.hazards = hazards, t);
+        setTimeout(() => {
+            const toDelete = this.hazards.filter(h => !hazards.includes(h));
+            toDelete.forEach(h => Game.registry.release(h.id));
+            this.hazards = hazards;
+        }, t);
     }
 
     useRngEffect() {
@@ -274,31 +298,31 @@ export class Game {
             }
             case 2: {
                 const eventName = 'WEB WARP'
-                const [transformer, t] = webwarpEvent(); 
+                const [transformer, t] = webwarpEvent(Game.registry); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }
             case 3: {
                 const eventName = 'FIRE FORMATION'
-                const [transformer, t] = fireFormationEvent(); 
+                const [transformer, t] = fireFormationEvent(Game.registry); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }
             case 4: {
                 const eventName = 'PORTAL PROPHECY'
-                const [transformer, t] = portalProphecyEvent(); 
+                const [transformer, t] = portalProphecyEvent(Game.registry); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }
             case 5: {
                 const eventName = 'MUSHROOM MADNESS'
-                const [transformer, t] = mushroomMadnessEvent(); 
+                const [transformer, t] = mushroomMadnessEvent(Game.registry); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }
             case 6: {
                 const eventName = 'SHIELD SLAM'
-                const [transformer, t] = shieldSlamEvent(); 
+                const [transformer, t] = shieldSlamEvent(Game.registry); 
                 this.hazardEffectEvent(transformer, t, eventName)
                 break;
             }

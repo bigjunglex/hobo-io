@@ -1,4 +1,5 @@
 import CONSTANTS, { HAZARDS } from "../../../shared/constants.js";
+import { idRegistry } from "../../utils.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -13,8 +14,8 @@ function flameEffect(this:Hazard, player: Player) {
     }, 500)
 }
 
-export function createFlameHazzard(x:number, y: number) {
-    const id = crypto.randomUUID().substring(0, 6);
+export function createFlameHazzard(x:number, y: number, registry: idRegistry) {
+    const id = registry.getId();
     const sprite = HAZARDS.Flame;
     return new Hazard(id, x, y, flameEffect, sprite)
 }

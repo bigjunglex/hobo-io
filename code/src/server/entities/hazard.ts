@@ -1,5 +1,4 @@
 import { Player } from "./player.js";
-import CONSTANTS from "../../shared/constants.js";
 import { Entity } from "./entity.js";
 import { getRandomCoords } from "../utils.js";
 
@@ -10,7 +9,7 @@ export class Hazard extends Entity {
     public effect: Effect;
     public onCooldown: boolean;
     
-    constructor(id: string, x: number, y: number, effect: Effect, sprite: number) {
+    constructor(id: number, x: number, y: number, effect: Effect, sprite: number) {
         super(id, x, y, 0, 0);
         this.effect = effect.bind(this);
         this.sprite = sprite;

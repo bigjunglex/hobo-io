@@ -108,7 +108,7 @@ function interpolateDirection(from: number, to: number, ratio: number): any {
 }
 
 
-export function updateIDMap(action: MAP_ACTIONS, packet: Record<number, string> | number) {
+export function updateIDMap(action: MAP_ACTIONS, packet: Record<string, string> | number) {
     switch (action) {
         case MAP_ACTIONS.Init: {
             if (typeof packet !== 'object') {
@@ -116,7 +116,7 @@ export function updateIDMap(action: MAP_ACTIONS, packet: Record<number, string> 
             }
 
             for (const id of Object.values(packet)) {
-                playerIdMap.set(+id, packet[+id])
+                playerIdMap.set(parseInt(id), packet[id])
             }
             break;
         }

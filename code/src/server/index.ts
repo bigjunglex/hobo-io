@@ -6,7 +6,7 @@ import * as uws from 'uWebSockets.js';
 import expressify from "uwebsockets-express";
 
 import { Game } from './game.js'
-import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writeScoresPacket } from "../shared/messages.js";
+import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writePlayersIDMapPacket, writeScoresPacket } from "../shared/messages.js";
 import CONSTANTS from "../shared/constants.js";
 import { idRegistry } from "./utils.js";
 
@@ -20,7 +20,7 @@ uWSapp.ws<Socket>('/*', {
     closeOnBackpressureLimit: true,
     upgrade: (res, req, ctx) => {
         res.upgrade(
-            { id: crypto.randomUUID().substring(0,5) },
+            { id: idReg.getId() },
             req.getHeader('sec-websocket-key'),
             req.getHeader('sec-websocket-protocol'),
             req.getHeader('sec-websocket-extensions'),
@@ -29,9 +29,13 @@ uWSapp.ws<Socket>('/*', {
     },
     open: (ws) => {
         const topScores = game.getTopScores() as ScoreData[];
-        const packet = writeScoresPacket(topScores);
+        const scorePacket = writeScoresPacket(topScores, Game.encoder);
+        const playerMapPacket = writePlayersIDMapPacket(game.getIdMap(), Game.encoder);
         ws.subscribe(CONSTANTS.NOTIFY_CHANNEL);
-        setImmediate(() => ws.send(packet, true));
+        setImmediate(() => {
+            ws.send(scorePacket, true);
+            ws.send(playerMapPacket, true)
+        });
     },
     message: (ws, packet, isB) => { 
         if (!isB) {
@@ -41,7 +45,7 @@ uWSapp.ws<Socket>('/*', {
         const type = getPacketType(packet);
         switch (type) {
             case MSG_TYPES.JOIN_GAME:
-                const [username, sprite] = readJoinPacket(packet);
+                const [username, sprite] = readJoinPacket(packet, Game.decoder);
                 game.addPlayer(ws, username, sprite.toString());
                 break;
             case MSG_TYPES.INPUT:
@@ -49,7 +53,7 @@ uWSapp.ws<Socket>('/*', {
                 game.handleInput(ws, dir);
                 break;
             case MSG_TYPES.CHAT_MESSAGE:
-                const message = readMessagePacket(packet);
+                const message = readMessagePacket(packet, Game.decoder);
                 game.chatMessage(ws, message);
                 break;
             default: 
@@ -59,7 +63,9 @@ uWSapp.ws<Socket>('/*', {
     },
     close: (ws, code) => {
         game.removePlayer(ws);
-        console.error('[DISCONNECT]:', ws.getUserData().id, ' --- with code ', code);
+        const id = ws.getUserData().id
+        idReg.release(id);
+        console.error('[DISCONNECT]:', id, ' --- with code ', code);
     }
 });
 

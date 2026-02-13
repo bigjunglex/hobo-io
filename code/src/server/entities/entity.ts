@@ -1,13 +1,13 @@
 import { Hazard } from "./hazard";
 
 export class Entity {
-    public id: string;
+    public id: number;
     public x: number;
     public y: number;
     public direction: number;
     public speed: number
 
-    constructor(id: string, x: number, y: number, direction: number, speed: number) {
+    constructor(id: number, x: number, y: number, direction: number, speed: number) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -31,7 +31,7 @@ export class Entity {
     }
 
     // reset(...params: ConstructorParameters<typeof Entity>)
-    public reset(id: string, x: number, y: number, direction: number, speed: number) {
+    public reset(id: number, x: number, y: number, direction: number, speed: number) {
         this.id = id;
         this.x = x;
         this.y = y;

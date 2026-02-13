@@ -28,15 +28,15 @@ export class BulletPool {
         this.pool = [];
     }
 
-    recieve(parentID: string, x: number, y: number, direction: number): Bullet {
+    recieve(parentID: number, id: number, x: number, y: number, direction: number): Bullet {
         const pool = this.pool;
         if (pool.length) {
             const bullet = pool.pop()!;
-            bullet.reset(parentID, x, y, direction);
+            bullet.reset(parentID, id, x, y, direction);
             return bullet;
         }
 
-        return new Bullet(parentID, x, y, direction)
+        return new Bullet(parentID, id, x, y, direction)
     }
 
     release(b: Bullet) {
@@ -63,12 +63,15 @@ export class idRegistry {
 
     getId(): number {
         if (this.ready.length > 0) {
-            return this.ready.pop()!;
+            const id = this.ready.pop()!
+            console.log('reused id', id)
+            return id;
         }
 
         if (this.next < this.max) {
             const id = this.next;
             this.next++;
+            console.log('new id', id)
             return id
         }
 
@@ -77,5 +80,6 @@ export class idRegistry {
 
     release(id: number): void {
         this.ready.push(id);
+        console.log('released id', id);
     }
 }

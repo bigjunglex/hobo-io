@@ -13,6 +13,8 @@ type Stats = {
 }
 
 class LoadTester {
+    private static encoder = new TextEncoder();
+
     private url: string;
     private count:number;
     private sockets: any[];
@@ -72,7 +74,7 @@ class LoadTester {
         const spriteId = Math.floor(Math.random() * 4)
         const name = 'CPU-' + crypto.randomUUID().substring(0,3);
 
-        const joinPacket = writeJoinPacket(name, `${spriteId > 3 ? 3 : spriteId}`)
+        const joinPacket = writeJoinPacket(name, `${spriteId > 3 ? 3 : spriteId}`, LoadTester.encoder)
         socket.send(joinPacket);
         this.sockets.push(socket);
     }

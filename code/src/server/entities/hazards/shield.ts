@@ -1,4 +1,5 @@
 import CONSTANTS, { EFFECTS, HAZARDS } from "../../../shared/constants.js";
+import { idRegistry } from "../../utils.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -26,8 +27,8 @@ function shieldEffect(this:Hazard, player: Player) {
 }
 
 
-export function createShieldHazzard(x:number, y: number) {
-    const id = crypto.randomUUID().substring(0, 6);
+export function createShieldHazzard(x:number, y: number, registry: idRegistry) {
+    const id = registry.getId();
     const sprite = HAZARDS.Steel;
     return new Hazard(id, x, y, shieldEffect, sprite);
 }

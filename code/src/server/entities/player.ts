@@ -11,7 +11,7 @@ export class Player extends Entity {
     public effect: number;
     public effectTimeout: NodeJS.Timeout|null;
 
-    constructor(id: string, username: string, x: number, y: number, sprite: string) {
+    constructor(id: number, username: string, x: number, y: number, sprite: string) {
         super(
             id,
             x,

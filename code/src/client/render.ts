@@ -1,5 +1,5 @@
 import kaplay, { GameObj, PosComp } from 'kaplay';
-import { getCurrentState } from './state';
+import { getCurrentState, getUsernameById } from './state';
 import CONSTANTS, { EFFECTS, HAZARDS } from '../shared/constants';
 import { debounce } from 'throttle-debounce';
 import { getSoundState } from './settings';
@@ -217,8 +217,9 @@ function drawPlayer(player: Player, isMe: boolean) {
         })
     }
 
+    const username = getUsernameById(player.id)
     k.drawText({
-        text: player.username,
+        text: username,
         font: 'happy',
         size: 20 / scale,
         color: isMe ? k.GREEN : k.WHITE,

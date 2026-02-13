@@ -2,11 +2,11 @@ import CONSTANTS from "../../shared/constants.js";
 import { Entity } from "./entity.js";
 
 export class Bullet extends Entity {
-    public parentID: string;
+    public parentID: number;
 
-    constructor(parentID: string, x: number, y: number, direction: number) {
+    constructor(parentID: number, id:number, x: number, y: number, direction: number) {
         super(
-            crypto.randomUUID().substring(0,5),
+            id,
             x,
             y,
             direction,
@@ -21,9 +21,9 @@ export class Bullet extends Entity {
         return this.x < 0 || this.x > CONSTANTS.MAP_SIZE || this.y < 0 || this.y > CONSTANTS.MAP_SIZE
     }
 
-    reset(parentID: string, x: number, y: number, direction: number) {
+    reset(parentID: number, id: number, x: number, y: number, direction: number) {
         super.reset(
-            crypto.randomUUID().substring(0,5),
+            id,
             x,
             y,
             direction,
@@ -35,6 +35,6 @@ export class Bullet extends Entity {
 }
 
 
-export function bulletFactory(parentID: string, x: number, y: number, direction: number) {
-    return new Bullet(parentID, x, y, direction)
+export function bulletFactory(parentID: number, id: number, x: number, y: number, direction: number) {
+    return new Bullet(parentID, id, x, y, direction)
 }

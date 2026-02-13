@@ -25,8 +25,8 @@ export function getPacketType(packet: ArrayBuffer): number {
 /**
  * blows up if sprite is not uint8 compat
  */
-export function writeJoinPacket(username: string, sprite: string): ArrayBuffer {
-    const name = new TextEncoder().encode(username);
+export function writeJoinPacket(username: string, sprite: string, encoder: TextEncoder): ArrayBuffer {
+    const name = encoder.encode(username);
     const size = UINT8_SIZE * 2 + name.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new DataView(buf);
@@ -44,11 +44,11 @@ export function writeJoinPacket(username: string, sprite: string): ArrayBuffer {
 /**
  * @returns [ username, sprite_id ]
  */ 
-export function readJoinPacket(packet: ArrayBuffer): [string, number] {
+export function readJoinPacket(packet: ArrayBuffer, decoder: TextDecoder): [string, number] {
     const spriteOffset = packet.byteLength - 1;
     const nameOffset = 1;
     const view = new Uint8Array(packet);
-    const username = new TextDecoder().decode(view.subarray(nameOffset, spriteOffset));
+    const username = decoder.decode(view.subarray(nameOffset, spriteOffset));
     const sprite = view[spriteOffset];
 
     return [ username, sprite ]
@@ -57,7 +57,7 @@ export function readJoinPacket(packet: ArrayBuffer): [string, number] {
 /**
  * @param input float32 compat number (radian) 
  */
-export function writeInputPacket(input:number): ArrayBuffer {
+export function writeInputPacket(input: number): ArrayBuffer {
     const size = UINT8_SIZE + FLOAT32_SIZE;
     const buf = new ArrayBuffer(size);
     const view = new DataView(buf);
@@ -74,8 +74,8 @@ export function readInputPacket(packet: ArrayBuffer): number {
     return view.getFloat32(1, true)
 }
 
-export function writeMessagePacket(message: string): ArrayBuffer {
-    const encoded = new TextEncoder().encode(message);
+export function writeMessagePacket(message: string, encoder: TextEncoder): ArrayBuffer {
+    const encoded = encoder.encode(message);
     const size = UINT8_SIZE + encoded.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new DataView(buf);
@@ -91,9 +91,9 @@ export function writeMessagePacket(message: string): ArrayBuffer {
 /**
  * from client to server
  */
-export function readMessagePacket(packet: ArrayBuffer): string {
+export function readMessagePacket(packet: ArrayBuffer, decoder: TextDecoder): string {
     const view = new Uint8Array(packet);
-    const message = new TextDecoder().decode(view.subarray(1));
+    const message = decoder.decode(view.subarray(1));
     return message
 }
 
@@ -106,8 +106,7 @@ export function readMessagePacket(packet: ArrayBuffer): string {
  * 
  * ^
  */
-export function writeChatMessagePacket(msg: ChatMessage): ArrayBuffer {
-    const encoder = new TextEncoder();
+export function writeChatMessagePacket(msg: Omit<ChatMessage, 'id'>, encoder: TextEncoder): ArrayBuffer {
     const username = encoder.encode(msg.username);
     const message = encoder.encode(msg.message);
     const size = UINT8_SIZE * 3 + FLOAT64_SIZE + username.byteLength + message.byteLength;
@@ -134,8 +133,7 @@ export function writeChatMessagePacket(msg: ChatMessage): ArrayBuffer {
 /**
  * read server-sent chat message packet
  */
-export function readChatMessagePacket(packet: ArrayBuffer): ChatMessage {
-    const decoder = new TextDecoder();
+export function readChatMessagePacket(packet: ArrayBuffer, decoder: TextDecoder): ChatMessage {
     const u8view = new Uint8Array(packet);
     const view = new DataView(packet);
     
@@ -150,18 +148,18 @@ export function readChatMessagePacket(packet: ArrayBuffer): ChatMessage {
 
     const time = view.getFloat64(offset, true);
 
-    return { username, message, time }
+    return { username, message, time, id: 0 /**stab for a bit, change contracts later */ }
 }
 
 /**
  * notify packets = JOIN + LEFT
  * @param isJoin specify join or left message
  * 
- * [TYPE] [NAMELENGTH] [....NAME] [TIME]
+ * [TYPE] [NAMELENGTH] [....NAME][ID][TIME]
  */
-export function writeNotifyPacket(msg: NotifyMessage, isJoin = true): ArrayBuffer {
-    const username = new TextEncoder().encode(msg.username);
-    const size = UINT8_SIZE * 2 + FLOAT64_SIZE + username.byteLength;
+export function writeNotifyPacket(msg: NotifyMessage, isJoin = true, encoder: TextEncoder): ArrayBuffer {
+    const username = encoder.encode(msg.username);
+    const size = UINT8_SIZE * 2 + FLOAT64_SIZE + UINT16_SIZE + username.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new DataView(buf);
     const type = isJoin ? MSG_TYPES.NOTIFY_JOIN : MSG_TYPES.NOTIFY_LEFT;
@@ -172,6 +170,8 @@ export function writeNotifyPacket(msg: NotifyMessage, isJoin = true): ArrayBuffe
     for (const b of username) {
         view.setUint8(offset++, b);
     };
+    view.setUint16(offset, msg.id, true);
+    offset += UINT16_SIZE;
     view.setFloat64(offset, msg.time, true);
 
     return buf
@@ -180,24 +180,26 @@ export function writeNotifyPacket(msg: NotifyMessage, isJoin = true): ArrayBuffe
 /**
  * read LEFT OR JOIN notification
  */
-export function readNotifyPacket(packet: ArrayBuffer): NotifyMessage {
+export function readNotifyPacket(packet: ArrayBuffer, decoder: TextDecoder): NotifyMessage {
     const view = new DataView(packet);
     const u8view = new Uint8Array(packet);
-    
+
     let offset = 1;
     const nameBytes = view.getUint8(offset++);
-    const username = new TextDecoder().decode(u8view.subarray(offset, offset + nameBytes));
+    const username = decoder.decode(u8view.subarray(offset, offset + nameBytes));
     offset += nameBytes;
+    const id = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
     const time = view.getFloat64(offset, true);
     
-    return { username, time }
+    return { username, time, id}
 }
 
 /**
  * [TYPE][...EVENT]
  */
-export function writeEventPacket(eventName: string): ArrayBuffer {
-    const event = new TextEncoder().encode(eventName);
+export function writeEventPacket(eventName: string, encoder: TextEncoder): ArrayBuffer {
+    const event = encoder.encode(eventName);
     const size = UINT8_SIZE + event.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new Uint8Array(buf);
@@ -209,15 +211,15 @@ export function writeEventPacket(eventName: string): ArrayBuffer {
     return buf
 }
 
-export function readEventPacket(packet: ArrayBuffer): string {
+export function readEventPacket(packet: ArrayBuffer, decoder: TextDecoder): string {
     const view = new Uint8Array(packet);
-    const event = new TextDecoder().decode(view.subarray(1));
+    const event = decoder.decode(view.subarray(1));
     return event
 }
 
 
-export function writeScoresPacket(scores: ScoreData[]): ArrayBuffer {
-    const payload = new TextEncoder().encode(JSON.stringify(scores));
+export function writeScoresPacket(scores: ScoreData[], encoder: TextEncoder): ArrayBuffer {
+    const payload = encoder.encode(JSON.stringify(scores));
     const size = UINT8_SIZE + payload.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new Uint8Array(buf);
@@ -228,9 +230,9 @@ export function writeScoresPacket(scores: ScoreData[]): ArrayBuffer {
     return buf
 };
 
-export function readScoresPacket(packet: ArrayBuffer): ScoreData[] {
+export function readScoresPacket(packet: ArrayBuffer, decoder: TextDecoder): ScoreData[] {
     const view = new Uint8Array(packet);
-    const json = new TextDecoder().decode(view.subarray(1));
+    const json = decoder.decode(view.subarray(1));
     return JSON.parse(json)
 }
 
@@ -249,23 +251,23 @@ export function writeUpdatePacket(gs: GameState): ArrayBuffer {
     // [ COUNT ] [ ...[LENGTH][PLAYER] ]
     //  ^
     view.setUint8(offset++, gs.others.length + 1);
-    offset = insertPlayer(encoder, view, u8view, offset, gs.me);
+    offset = insertPlayer(view, offset, gs.me);
     for (const p of gs.others) {
-        offset = insertPlayer(encoder, view, u8view, offset, p);
+        offset = insertPlayer(view, offset, p);
     }
 
     // [ COUNT ] [ ...[LENGTH][BULLET] ]
     //  ^
     view.setUint8(offset++, gs.bullets.length);
     for (const b of gs.bullets) {
-        offset = insertBullet(encoder, view, u8view, offset, b)
+        offset = insertBullet(view, offset, b)
     }
 
     // [ COUNT ] [ ...[LENGTH][BULLET] ]
     //  ^
     view.setUint8(offset++, gs.hazards.length);
     for (const h of gs.hazards) {
-        offset = insertHazard(encoder, view, u8view, offset, h);
+        offset = insertHazard(view, offset, h);
     }
 
     // [COUNT][... LEADERBOARD ENTRY]
@@ -295,7 +297,7 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const others = [];
     let playersCount = view.getUint8(offset++);
     while (playersCount > 0) {
-        const [p, newOffset] = extractPlayer(decoder, view, u8view, offset);
+        const [p, newOffset] = extractPlayer(view, offset);
         others.push(p);
         --playersCount;
         offset = newOffset;
@@ -305,7 +307,7 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const bullets: SerializedEntity[] = [];
     let bulletsCount = view.getUint8(offset++);
     while (bulletsCount > 0) {
-        const [b, newOffset] = extractBullet(decoder, view, u8view, offset);
+        const [b, newOffset] = extractBullet(view, offset);
         bullets.push(b);
         --bulletsCount;
         offset = newOffset;
@@ -314,7 +316,7 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const hazards: SerializedHazard[] = [];
     let hazardsCount = view.getUint8(offset++);
     while (hazardsCount > 0) {
-        const [h, newOffset] = extractHazard(decoder, view, u8view, offset);
+        const [h, newOffset] = extractHazard(view, offset);
         hazards.push(h);
         --hazardsCount;
         offset = newOffset;
@@ -352,22 +354,14 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
  * inserts @SerializedPlayer into buffer by provided views
  */
 function insertPlayer(
-    encoder: TextEncoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     p: SerializedPlayer
 ): number {
     const start = offset++;
-    const id = encoder.encode(p.id);
-    view.setUint8(offset++, id.byteLength);
-    u8view.set(id, offset);
-    offset += id.byteLength;
 
-    const username = encoder.encode(p.username);
-    view.setUint8(offset++, username.byteLength);
-    u8view.set(username, offset);
-    offset += username.byteLength;
+    view.setUint16(offset, p.id, true);
+    offset += UINT16_SIZE;
 
     view.setUint8(offset++, +p.sprite);
     view.setUint8(offset++, p.effect);
@@ -394,17 +388,14 @@ function insertPlayer(
  * inserts @SerializedEntity into buffer by provided views
  */
 function insertBullet(
-    encoder: TextEncoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     b: SerializedEntity
 ): number {
     const start = offset++;
-    const id = encoder.encode(b.id);
-    view.setUint8(offset++, id.byteLength);
-    u8view.set(id, offset);
-    offset += id.byteLength;
+
+    view.setUint16(offset, b.id, true);
+    offset += UINT16_SIZE;
 
     view.setFloat32(offset, b.x, true);
     offset += FLOAT32_SIZE;
@@ -426,17 +417,14 @@ function insertBullet(
  * ^
  */
 function insertHazard(
-    encoder: TextEncoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     h: SerializedHazard
 ): number {
     const start = offset++;
-    const id = encoder.encode(h.id);
-    view.setUint8(offset++, id.byteLength);
-    u8view.set(id, offset);
-    offset += id.byteLength;
+
+    view.setUint16(offset, h.id, true);
+    offset += UINT16_SIZE;
 
     view.setUint8(offset++, h.sprite);
 
@@ -486,20 +474,16 @@ function insertBoardEntry(
 }
 
 function extractPlayer(
-    decoder: TextDecoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): [SerializedPlayer, number] {
     const playerBytes = view.getUint8(offset++);
 
-    const idBytes = view.getUint8(offset++);
-    const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
-    offset += idBytes;
-
-    const userBytes = view.getUint8(offset++);
-    const username = decoder.decode(u8view.subarray(offset, offset + userBytes));
-    offset += userBytes;
+    const id = view.getUint16(offset, true);
+    offset += UINT16_SIZE; 
+    
+    //placeholder
+    const username = '';
 
     const sprite = view.getUint8(offset++);
     const effect = view.getUint8(offset++);
@@ -529,16 +513,13 @@ function extractPlayer(
 }
 
 function extractBullet(
-    decoder: TextDecoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): [SerializedEntity, number] {
     const bulletBytes = view.getUint8(offset++);
-    const idBytes = view.getUint8(offset++);
-    const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
-    offset += idBytes;
 
+    const id = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
     const x = view.getFloat32(offset, true);
     offset += FLOAT32_SIZE;
     const y = view.getFloat32(offset, true);
@@ -551,15 +532,13 @@ function extractBullet(
 }
 
 function extractHazard(
-    decoder: TextDecoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): [SerializedHazard, number] {
     const hazardBytes = view.getUint8(offset++);
-    const idBytes = view.getUint8(offset++); 
-    const id = decoder.decode(u8view.subarray(offset, offset + idBytes));
-    offset += idBytes;
+
+    const id = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
     const sprite = view.getUint8(offset++);
 
     const x = view.getFloat32(offset, true);
@@ -601,8 +580,8 @@ function extractBoardEntry(
     ]
 }
 
-export function writePlayersIDMapPacket(players: Record<number, string>): ArrayBuffer {
-    const payload = new TextEncoder().encode(JSON.stringify(players));
+export function writePlayersIDMapPacket(players: Record<string, string>, encoder: TextEncoder): ArrayBuffer {
+    const payload = encoder.encode(JSON.stringify(players));
     const size = UINT8_SIZE + payload.byteLength;
     const buf = new ArrayBuffer(size);
     const view = new Uint8Array(buf);
@@ -613,8 +592,8 @@ export function writePlayersIDMapPacket(players: Record<number, string>): ArrayB
     return buf
 }
 
-export function readPlayersIDMapPacket(packet: ArrayBuffer): Record<number, string> {
+export function readPlayersIDMapPacket(packet: ArrayBuffer, decoder: TextDecoder): Record<string, string> {
     const view = new Uint8Array(packet);
-    const json = new TextDecoder().decode(view.subarray(1));
+    const json = decoder.decode(view.subarray(1));
     return JSON.parse(json)
 }

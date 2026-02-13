@@ -1,5 +1,5 @@
 import CONSTANTS, { HAZARDS } from "../../../shared/constants.js";
-import { getRandomCoords } from "../../utils.js";
+import { getRandomCoords, idRegistry } from "../../utils.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -16,8 +16,8 @@ function portalEffect(this: Hazard, player: Player) {
     }, 500)
 }
 
-export function createPortalHazzard(x: number, y: number) {
-    const id = crypto.randomUUID().substring(0,6);
+export function createPortalHazzard(x: number, y: number, registry: idRegistry) {
+    const id = registry.getId();
     const sprite = HAZARDS.Portal;
     return new Hazard(id, x, y, portalEffect, sprite)
 }

@@ -1,4 +1,5 @@
 import CONSTANTS, { HAZARDS } from "../../../shared/constants.js";
+import { idRegistry } from "../../utils.js";
 import { Hazard } from "../hazard.js";
 import { Player } from "../player.js";
 
@@ -16,8 +17,8 @@ function webEffect(this:Hazard, player: Player) {
     }, 3000)
 };
 
-export function createWebHazzard(x:number, y: number) {
-    const id = crypto.randomUUID().substring(0,6);
+export function createWebHazzard(x:number, y: number, registry: idRegistry) {
+    const id = registry.getId();
     const sprite = HAZARDS.Spider_Web;
     return new Hazard(id, x, y, webEffect, sprite)
 }

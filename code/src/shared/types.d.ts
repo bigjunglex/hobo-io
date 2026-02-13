@@ -12,7 +12,7 @@ type Position = {
 
 type Player = {
     direction: number;
-    id: string;
+    id: number;
     hp: number;
     username: string;
     sprite: number;
@@ -20,7 +20,7 @@ type Player = {
 } & Position;
 
 type Bullet = {
-    id: string;
+    id: number;
     direction?: number;
     parentID?: string;
 } & Position;
@@ -31,7 +31,7 @@ type Score = {
 }
 
 type SerializedHazard = {
-    id: string;
+    id: number;
     sprite: number;
     onCooldown: boolean;
 } & Position;
@@ -51,13 +51,13 @@ type GameState = {
 }
 
 type EffectEntry = {
-    entityID: string;
+    entityID: number;
     type: number;
     ref: Object;
 }
 
 type SerializedEntity = {
-    id: string;
+    id: number;
 } & Position;
 
 type SerializedPlayer = SerializedEntity & {
@@ -98,6 +98,7 @@ type ChatForm = HTMLFormElement & {
 
 type ChatMessage = {
     username: string;
+    id: number;
     message: string;
     time: number;
 }
@@ -114,5 +115,5 @@ type ScoreData = {
 }
 
 interface Socket {
-    id: string
+    id: number
 }

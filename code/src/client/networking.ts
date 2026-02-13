@@ -19,6 +19,9 @@ const connected = new Promise<WebSocket>(resolve => {
 
 })
 
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
 const pingSpan = document.getElementById('ping')!;
 let pingprinter: null|PingPrinter = null;
 export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, STAYS HERE FOR A BIT */) =>  (
@@ -34,25 +37,25 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
             const type = getPacketType(data);
             switch (type) {
                 case MSG_TYPES.CHAT_MESSAGE: {
-                    const packet = readChatMessagePacket(data);
+                    const packet = readChatMessagePacket(data, decoder);
                     onChatMessage(packet);
                     break;
                 }
                 case MSG_TYPES.NOTIFY_JOIN: {
-                    const packet  = readNotifyPacket(data);
+                    const packet  = readNotifyPacket(data, decoder);
                     onJoinNotify(packet);
                     // const id = +packet.id
                     // updateIDMap(MAP_ACTIONS.Join, {id: packet.username})
                     break;
                 }
                 case MSG_TYPES.NOTIFY_LEFT: {
-                    const packet  = readNotifyPacket(data);
+                    const packet  = readNotifyPacket(data, decoder);
                     onLeftNotify(packet);
-                    // updateIDMap(MAP_ACTIONS.Left, packet.id)
+                    updateIDMap(MAP_ACTIONS.Left, packet.id)
                     break;
                 }
                 case MSG_TYPES.NOTIFY_EVENT: {
-                    const packet  = readEventPacket(data);
+                    const packet  = readEventPacket(data, decoder);
                     drawEventNotification(packet);
                     break;
                 }
@@ -63,13 +66,13 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
                     break;
                 }
                 case MSG_TYPES.TOP_SCORES: {
-                    const packet = readScoresPacket(data);
+                    const packet = readScoresPacket(data, decoder);
                     topScores(packet);
                     break;
                 }
                 case MSG_TYPES.PLAYER_ID_MAP: {
-                    const packet = readPlayersIDMapPacket(data);
-                    // updateIDMap(MAP_ACTIONS.Init, packet);
+                    const packet = readPlayersIDMapPacket(data, decoder);
+                    updateIDMap(MAP_ACTIONS.Init, packet);
                     break;
                 }
                     
@@ -89,7 +92,7 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
 );
 
 export const play = (username: string, sprite: string) => {
-    const packet = writeJoinPacket(username, sprite);
+    const packet = writeJoinPacket(username, sprite, encoder);
     socket.send(packet);
 }
 
@@ -99,7 +102,7 @@ export const updateDirection = throttle(20, (dir:number) => {
 })
 
 export const sendMessage = (message: string) => {
-    const packet = writeMessagePacket(message);
+    const packet = writeMessagePacket(message, encoder);
     socket.send(packet);
 }
 
