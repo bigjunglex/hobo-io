@@ -3,7 +3,7 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry } from "./utils.js";
+import { BufferPool, BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
@@ -35,6 +35,7 @@ export class Game {
     private currentEvent: string|null;
     private db: DbRunner;
     private boundUpdate:() => void;
+    private updateBuffers: BufferPool;
 
 
     constructor(app: uws.TemplatedApp) {
@@ -50,6 +51,7 @@ export class Game {
         this.db = getRunner();
         this.boundUpdate = this.update.bind(this);
         this.app = app;
+        this.updateBuffers = new BufferPool(4096 * 2);
 
         this.boundUpdate();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
@@ -159,7 +161,10 @@ export class Game {
                     const socket = this.sockets[id];
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
-                    const packet = writeUpdatePacket(update);
+                    const buf = this.updateBuffers.getBuf();
+                    const packet = writeUpdatePacket(update, buf);
+                    
+                    this.updateBuffers.release(buf);
                     process.nextTick(() => socket.send(packet, true));
             })
             this.shouldSendUpdate = false;

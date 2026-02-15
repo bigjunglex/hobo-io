@@ -48,7 +48,31 @@ export class BulletPool {
     }
 }
 
-export class BufferPool {/** TODO, since its mostly usable on server, mb use Buffer module??? */ };
+/**
+ * what size should it be? 8kb for absolute max update??
+ */
+export class BufferPool {
+    private pool: ArrayBuffer[];
+    private size: number;
+
+    constructor(size: number) {
+        this.pool = [];
+        this.size = size;
+    }
+
+    getBuf(): ArrayBuffer {
+        const pool = this.pool;
+        if (pool.length) {
+            return pool.pop()!;
+        }
+        const buf = new ArrayBuffer(this.size);
+        return buf;
+    }
+
+    release(buf: ArrayBuffer):void {
+        this.pool.push(buf);
+    }
+};
 
 export class idRegistry {
     private ready: number[];
