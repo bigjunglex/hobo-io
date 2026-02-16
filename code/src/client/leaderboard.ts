@@ -8,12 +8,15 @@ const allTimeRows = document.querySelectorAll('#topscores tr');
 
 
 export function updateLeaderboard(leaderboard: Score[]):void {
-    for (let i = 0; i < leaderboard.length; i++) {
-        const username = getUsernameById(leaderboard[i].id).slice(0, 15)
-        const name = `<td>${escapeHtml(username) || 'Anonymous'}</td>`
-        const score = `<td>${leaderboard[i].score }</td>`
-        rows[i + 1].innerHTML = `${name}${score}` 
-    }
+    try {
+        for (let i = 0; i < leaderboard.length; i++) {
+            console.assert(leaderboard[i], 'undefined leaderboard: %s', leaderboard);
+            const username = getUsernameById(leaderboard[i].id).slice(0, 15)
+            const name = `<td>${escapeHtml(username) || 'Anonymous'}</td>`
+            const score = `<td>${leaderboard[i].score }</td>`
+            rows[i + 1].innerHTML = `${name}${score}` 
+        }
+    } catch (e) {}
 }
 
 function escapeHtml(str: string): string {

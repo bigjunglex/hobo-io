@@ -72,7 +72,7 @@ export function getCurrentState() {
     }
 };
 
-function interpolateObject<T extends Bullet | Player >(from: T, to: T, ratio: number): T {
+function interpolateObject<T extends Bullet | Player >(from: T, to: T | undefined, ratio: number): T {
     if (!to) return from;
 
     const interpolated = {} as T;
@@ -91,7 +91,7 @@ function interpolateObject<T extends Bullet | Player >(from: T, to: T, ratio: nu
 }
 
 function interpolateObjectArray<T extends Bullet | Player>(from: T[], to: T[], ratio: number): T[] {
-    return from.map(obj => interpolateObject<T>(obj, to.find(obj2 => obj.id === obj2.id)!, ratio))
+    return from.map(obj => interpolateObject<T>(obj, to.find(obj2 => obj.id === obj2.id), ratio))
 }
 
 function interpolateDirection(from: number, to: number, ratio: number): any {

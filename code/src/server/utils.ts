@@ -104,3 +104,29 @@ export class idRegistry {
         this.ready.push(id);
     }
 }
+
+
+export class ScoreMap {
+    private map: Map<number, number>;
+    constructor() {
+        this.map = new Map<number, number>();
+    }
+
+    retrieve(id: number): number {
+        return this.map.get(id) ?? 0
+    }
+
+    update(id:number, score:number) {
+        const map = this.map;
+        if (map.has(id)) {
+            const prev = map.get(id)!;
+            if (score > prev) {
+                map.set(id, score);
+            }
+
+            return;
+        }
+
+        map.set(id, score);
+    }
+}

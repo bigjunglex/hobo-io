@@ -3,7 +3,7 @@ import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { applyCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
-import { BufferPool, BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry } from "./utils.js";
+import { BufferPool, BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry, ScoreMap } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
 import { createPortalHazzard } from "./entities/hazards/portal.js";
 import { createBoostHazzard } from "./entities/hazards/haste.js";
@@ -20,6 +20,7 @@ type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
     private static registry = new idRegistry(CONSTANTS.MAX_ID); 
+    private static scoreMap = new ScoreMap();
     public static encoder = new TextEncoder();
     public static decoder = new TextDecoder();
 
@@ -85,7 +86,10 @@ export class Game {
         delete this.players[id];
 
         const packet = writeNotifyPacket({ username, time, id }, false, Game.encoder);
+        const score = Game.scoreMap.retrieve(id);
+
         setImmediate(() => this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true));
+        setImmediate(() => this.db.insertScore(score, username));
     }
 
     getIdMap(): Record<string, string> {
@@ -150,8 +154,8 @@ export class Game {
             if (player.hp <= 0) {
                 const x = getRandomCoordsCenter();
                 const y = getRandomCoordsCenter();
-                setImmediate(() => this.db.insertScore(player.score, player.username));
-                player.respawn(x, y)
+                Game.scoreMap.update(player.id, player.score);
+                player.respawn(x, y);
             }
         })
 
