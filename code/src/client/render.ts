@@ -1,6 +1,6 @@
 import kaplay, { GameObj, PosComp } from 'kaplay';
 import { getCurrentState, getUsernameById } from './state';
-import CONSTANTS, { EFFECTS, HAZARDS } from '../shared/constants';
+import CONSTANTS, { EFFECTS, EVENTS, HAZARDS } from '../shared/constants';
 import { debounce } from 'throttle-debounce';
 import { getSoundState } from './settings';
 
@@ -328,15 +328,16 @@ function drawHitMark(me: Player) {
     hitMark.wait(1.5, () => hitMark.destroy())
 }
 
-export function drawEventNotification(event: string) {
+export function drawEventNotification(event: number) {
     if (!event || k.getSceneName() !== 'arena') return;
 
+    const eventName = EVENTS[event].replace('_', '');
     const note = k.add([
         k.pos(k.center().add(0, -130)),
         k.timer(),
         k.outline(1, k.WHITE, 0.8),
         k.color(k.MAGENTA),
-        k.text(event, {
+        k.text(eventName, {
             font: 'happy',
             align: 'center',
             letterSpacing: 12,

@@ -4,7 +4,6 @@ import { MAP_ACTIONS, processGameUpdate, updateIDMap } from './state';
 import { onChatMessage, onJoinNotify, onLeftNotify  } from './chat';
 import { drawEventNotification } from './render';
 import { topScores } from './leaderboard';
-import { write } from 'node:fs';
 import { getPacketType, MSG_TYPES, readChatMessagePacket, readEventPacket, readNotifyPacket, readPlayersIDMapPacket, readScoresPacket, readUpdatePacket, writeInputPacket, writeJoinPacket, writeMessagePacket } from '../shared/messages';
 
 const socketProtocol = (window.location.protocol.includes('https')) ? 'wss' : 'ws';
@@ -21,9 +20,9 @@ const connected = new Promise<WebSocket>(resolve => {
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-
 const pingSpan = document.getElementById('ping')!;
 let pingprinter: null|PingPrinter = null;
+
 export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, STAYS HERE FOR A BIT */) =>  (
     connected.then((ws) => {
         pingprinter = new PingPrinter(pingSpan);
@@ -54,13 +53,13 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
                     break;
                 }
                 case MSG_TYPES.NOTIFY_EVENT: {
-                    const packet  = readEventPacket(data, decoder);
+                    const packet  = readEventPacket(data);
                     drawEventNotification(packet);
                     break;
                 }
                 case MSG_TYPES.GAME_UPDATE: {
                     pingprinter?.addUpdate();
-                    const update = readUpdatePacket(data);
+                    const update = readUpdatePacket(data, decoder);
                     processGameUpdate(update);
                     break;
                 }

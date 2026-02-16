@@ -196,24 +196,23 @@ export function readNotifyPacket(packet: ArrayBuffer, decoder: TextDecoder): Not
 }
 
 /**
- * [TYPE][...EVENT]
+ * [TYPE][EVENT]
  */
-export function writeEventPacket(eventName: string, encoder: TextEncoder): ArrayBuffer {
-    const event = encoder.encode(eventName);
-    const size = UINT8_SIZE + event.byteLength;
+export function writeEventPacket(eventName: number): ArrayBuffer {
+    const size = UINT8_SIZE * 2;
     const buf = new ArrayBuffer(size);
     const view = new Uint8Array(buf);
     
     let offset = 0;
     view[offset++] = MSG_TYPES.NOTIFY_EVENT;
-    view.set(event, offset);
+    view[offset] = eventName;
 
     return buf
 }
 
-export function readEventPacket(packet: ArrayBuffer, decoder: TextDecoder): string {
+export function readEventPacket(packet: ArrayBuffer): number {
     const view = new Uint8Array(packet);
-    const event = decoder.decode(view.subarray(1));
+    const event = view[1];
     return event
 }
 
@@ -237,8 +236,7 @@ export function readScoresPacket(packet: ArrayBuffer, decoder: TextDecoder): Sco
 }
 
 
-export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer): ArrayBuffer {
-    const encoder = new TextEncoder();
+export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer, encoder: TextEncoder): ArrayBuffer {
     const view = new DataView(buf);
     const u8view = new Uint8Array(buf);
     
@@ -284,8 +282,7 @@ export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer): ArrayBuffer 
     return packet
 } 
 
-export function readUpdatePacket(packet: ArrayBuffer): GameState {
-    const decoder = new TextDecoder();
+export function readUpdatePacket(packet: ArrayBuffer, decoder: TextDecoder): GameState {
     const view = new DataView(packet);
     const u8view = new Uint8Array(packet);
 

@@ -1,4 +1,4 @@
-import CONSTANTS from "../shared/constants.js";
+import CONSTANTS, { EVENTS } from "../shared/constants.js";
 import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
 import { applyCollisions } from "./collisions.js";
@@ -32,7 +32,7 @@ export class Game {
     private bulletPool: BulletPool;
     private effectApplicator: EffectApplicator|null;
     private app: uws.TemplatedApp;
-    private currentEvent: string|null;
+    private currentEvent: number;
     private db: DbRunner;
     private boundUpdate:() => void;
     private updateBuffers: BufferPool;
@@ -47,7 +47,7 @@ export class Game {
         this.shouldSendUpdate = false;
         this.bulletPool = new BulletPool();
         this.effectApplicator = null;
-        this.currentEvent = null;
+        this.currentEvent = EVENTS.Null;
         this.db = getRunner();
         this.boundUpdate = this.update.bind(this);
         this.app = app;
@@ -162,7 +162,7 @@ export class Game {
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
                     const buf = this.updateBuffers.getBuf();
-                    const packet = writeUpdatePacket(update, buf);
+                    const packet = writeUpdatePacket(update, buf, Game.encoder);
                     
                     this.updateBuffers.release(buf);
                     process.nextTick(() => socket.send(packet, true));
@@ -259,7 +259,7 @@ export class Game {
         return this.db.getTopScores();
     }
 
-    playerEffectEvent(applicator: EffectApplicator, remover: EffectApplicator, t: number, eventName: string) {
+    playerEffectEvent(applicator: EffectApplicator, remover: EffectApplicator, t: number, eventName: number) {
         this.currentEvent = eventName;
         this.effectApplicator = applicator;
         
@@ -267,7 +267,7 @@ export class Game {
             applicator(p)
         }
 
-        const packet = writeEventPacket(eventName, Game.encoder);
+        const packet = writeEventPacket(eventName);
         this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
 
         setTimeout(() => {
@@ -275,14 +275,14 @@ export class Game {
                 remover(p)
             }
             this.effectApplicator = null;
-            this.currentEvent = null;
+            this.currentEvent = EVENTS.Null;
         }, t)
     }
 
-    hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: string) {
+    hazardEffectEvent(transformer: HazardTransformer, t: number, eventName: EVENTS) {
         const hazards = [ ...this.hazards ];
         transformer(this.hazards);
-        const packet = writeEventPacket(eventName, Game.encoder);
+        const packet = writeEventPacket(eventName);
         this.app.publish(CONSTANTS.NOTIFY_CHANNEL, packet, true)
         
         setTimeout(() => {
@@ -292,43 +292,44 @@ export class Game {
         }, t);
     }
 
+
     useRngEffect() {
         const number = Math.floor(Math.random() * 6) + 1;
         switch (number) {
             case 1: {
-                const eventName = 'SLOW DOWN'
+                const eventName = EVENTS.SLOW_DOWN;
                 const [applicator, remover, t] = slowdownEvent();
                 this.playerEffectEvent(applicator, remover, t, eventName);
                 break;
             }
             case 2: {
-                const eventName = 'WEB WARP'
+                const eventName = EVENTS.WEB_WARP;
                 const [transformer, t] = webwarpEvent(Game.registry); 
-                this.hazardEffectEvent(transformer, t, eventName)
+                this.hazardEffectEvent(transformer, t, eventName);
                 break;
             }
             case 3: {
-                const eventName = 'FIRE FORMATION'
+                const eventName = EVENTS.FIRE_FORMATION;
                 const [transformer, t] = fireFormationEvent(Game.registry); 
-                this.hazardEffectEvent(transformer, t, eventName)
+                this.hazardEffectEvent(transformer, t, eventName);
                 break;
             }
             case 4: {
-                const eventName = 'PORTAL PROPHECY'
+                const eventName = EVENTS.PORTAL_PROPHECY;
                 const [transformer, t] = portalProphecyEvent(Game.registry); 
-                this.hazardEffectEvent(transformer, t, eventName)
+                this.hazardEffectEvent(transformer, t, eventName);
                 break;
             }
             case 5: {
-                const eventName = 'MUSHROOM MADNESS'
+                const eventName = EVENTS.MUSHROOM_MADNESS;
                 const [transformer, t] = mushroomMadnessEvent(Game.registry); 
-                this.hazardEffectEvent(transformer, t, eventName)
+                this.hazardEffectEvent(transformer, t, eventName);
                 break;
             }
             case 6: {
-                const eventName = 'SHIELD SLAM'
+                const eventName = EVENTS.SHIELD_SLAM;
                 const [transformer, t] = shieldSlamEvent(Game.registry); 
-                this.hazardEffectEvent(transformer, t, eventName)
+                this.hazardEffectEvent(transformer, t, eventName);
                 break;
             }
         }

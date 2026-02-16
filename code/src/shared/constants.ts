@@ -51,7 +51,7 @@ const CONSTANTS = {
     },
 
 
-    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'], // TODO: Rewrite to enum in msg
+    PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'],
     /**
      * UINT16 max size
      */
@@ -70,6 +70,16 @@ export enum EFFECTS {
     Null,
     Boost,
     Shield
+}
+
+export enum EVENTS {
+    Null,
+    SLOW_DOWN,
+    WEB_WARP,
+    FIRE_FORMATION,
+    PORTAL_PROPHECY,
+    MUSHROOM_MADNESS,
+    SHIELD_SLAM,
 }
 
 export default CONSTANTS;
