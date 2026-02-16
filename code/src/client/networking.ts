@@ -59,7 +59,7 @@ export const connect = (onGameOver: GameCallback /** REMOVED ON PREV ITERATION, 
                 }
                 case MSG_TYPES.GAME_UPDATE: {
                     pingprinter?.addUpdate();
-                    const update = readUpdatePacket(data, decoder);
+                    const update = readUpdatePacket(data);
                     processGameUpdate(update);
                     break;
                 }

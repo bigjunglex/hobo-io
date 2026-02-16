@@ -236,10 +236,9 @@ export function readScoresPacket(packet: ArrayBuffer, decoder: TextDecoder): Sco
 }
 
 
-export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer, encoder: TextEncoder): ArrayBuffer {
+export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer): ArrayBuffer {
     const view = new DataView(buf);
-    const u8view = new Uint8Array(buf);
-    
+
     let offset = 0;
     view.setUint8(offset++, MSG_TYPES.GAME_UPDATE);
     view.setFloat64(offset, gs.t, true);
@@ -270,7 +269,7 @@ export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer, encoder: Text
     // [COUNT][... LEADERBOARD ENTRY]
     view.setUint8(offset++, gs.leaderboard.length);
     for (const s of gs.leaderboard) {
-        offset = insertBoardEntry(encoder, view, u8view, offset, s);
+        offset = insertBoardEntry(view, offset, s);
     }
 
     view.setUint16(offset, gs.c, true);
@@ -282,9 +281,8 @@ export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer, encoder: Text
     return packet
 } 
 
-export function readUpdatePacket(packet: ArrayBuffer, decoder: TextDecoder): GameState {
+export function readUpdatePacket(packet: ArrayBuffer): GameState {
     const view = new DataView(packet);
-    const u8view = new Uint8Array(packet);
 
     let offset = 1;
     const t = view.getFloat64(offset, true);
@@ -298,7 +296,6 @@ export function readUpdatePacket(packet: ArrayBuffer, decoder: TextDecoder): Gam
         --playersCount;
         offset = newOffset;
     };
-    
 
     const bullets: SerializedEntity[] = [];
     let bulletsCount = view.getUint8(offset++);
@@ -321,7 +318,7 @@ export function readUpdatePacket(packet: ArrayBuffer, decoder: TextDecoder): Gam
     const leaderboard: Score[] = [];
     let scoresCount = view.getUint8(offset++);
     while (scoresCount > 0) {
-        const [s, newOffset] = extractBoardEntry(decoder, view, u8view, offset);
+        const [s, newOffset] = extractBoardEntry(view, offset);
         leaderboard.push(s);
         --scoresCount;
         offset = newOffset;
@@ -447,24 +444,17 @@ function insertHazard(
  * ^
  */
 function insertBoardEntry(
-    encoder: TextEncoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number,
     s: Score
 ): number {
-    const start = offset++;
-    const username = encoder.encode(s.username);
-    view.setUint8(offset++, username.byteLength);
-    u8view.set(username, offset);
-    offset += username.byteLength;
-
     const score = Math.round(s.score);
+
+    view.setUint16(offset, s.id, true);
+    offset += UINT16_SIZE;
+    
     view.setUint16(offset, score, true);
     offset += UINT16_SIZE;
-
-    const scoreBytes = offset - start;
-    view.setUint8(start, scoreBytes);
 
     return offset
 }
@@ -557,21 +547,16 @@ function extractHazard(
 }
 
 function extractBoardEntry(
-    decoder: TextDecoder,
     view: DataView<ArrayBuffer>,
-    u8view: Uint8Array<ArrayBuffer>,
     offset: number
 ): [Score, number] {
-    const scoreBytes = view.getUint8(offset++);
-    const userBytes = view.getUint8(offset++);
-    const username = decoder.decode(u8view.subarray(offset, offset + userBytes));
-    offset += userBytes;
-
+    const id = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
     const score = view.getUint16(offset, true);
     offset += UINT16_SIZE;
 
     return [
-        { username, score },
+        { id, score },
         offset
     ]
 }

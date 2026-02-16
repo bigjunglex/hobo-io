@@ -331,7 +331,7 @@ function drawHitMark(me: Player) {
 export function drawEventNotification(event: number) {
     if (!event || k.getSceneName() !== 'arena') return;
 
-    const eventName = EVENTS[event].replace('_', '');
+    const eventName = EVENTS[event].replace('_', ' ');
     const note = k.add([
         k.pos(k.center().add(0, -130)),
         k.timer(),

@@ -1,3 +1,5 @@
+import { getUsernameById } from "./state";
+
 const leaderboard = document.getElementById('leaderboard')!;
 const rows = document.querySelectorAll('#leaderboard table tr');
 const count = document.getElementById('player-count')!;
@@ -7,7 +9,8 @@ const allTimeRows = document.querySelectorAll('#topscores tr');
 
 export function updateLeaderboard(leaderboard: Score[]):void {
     for (let i = 0; i < leaderboard.length; i++) {
-        const name = `<td>${escapeHtml(leaderboard[i].username.slice(0, 15)) || 'Anonymous'}</td>`
+        const username = getUsernameById(leaderboard[i].id).slice(0, 15)
+        const name = `<td>${escapeHtml(username) || 'Anonymous'}</td>`
         const score = `<td>${leaderboard[i].score }</td>`
         rows[i + 1].innerHTML = `${name}${score}` 
     }

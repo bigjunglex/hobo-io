@@ -162,7 +162,7 @@ export class Game {
                     const player = this.players[id];
                     const update = this.createUpdate(player, state);
                     const buf = this.updateBuffers.getBuf();
-                    const packet = writeUpdatePacket(update, buf, Game.encoder);
+                    const packet = writeUpdatePacket(update, buf);
                     
                     this.updateBuffers.release(buf);
                     process.nextTick(() => socket.send(packet, true));
@@ -223,7 +223,7 @@ export class Game {
         return Object.values(this.players)
             .sort((p1, p2) => p2.score - p1.score)
             .slice(0,5)
-            .map( p => ({username: p.username, score: Math.round(p.score)}))
+            .map( p => ({id: p.id, score: Math.round(p.score)}))
     }
     /**
      * needs better hazzards generator TODO

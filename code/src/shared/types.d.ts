@@ -26,7 +26,7 @@ type Bullet = {
 } & Position;
 
 type Score = {
-    username: string;
+    id: number;
     score: number;
 }
 
