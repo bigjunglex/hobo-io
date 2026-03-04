@@ -2,7 +2,7 @@ code/node_modules/
 code/.env
 code/dist/
 code/dist-client/
-code/*.db
+code/*.db*
 
 # for now local tests ignored
 code/src/*.test.ts

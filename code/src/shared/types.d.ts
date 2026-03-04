@@ -117,3 +117,5 @@ type ScoreData = {
 interface Socket {
     id: number
 }
+
+type DbInsertMessage = { score: number, name: string };
