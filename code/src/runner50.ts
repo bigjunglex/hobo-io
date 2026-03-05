@@ -40,7 +40,7 @@ class LoadTester {
 
         for (let i = 0; i < this.count; i++) {
             await this.connectPlayer();
-            await setTimeout(100)
+            await setTimeout(10)
         }
 
         console.log('All players connected!');
@@ -77,6 +77,16 @@ class LoadTester {
         const joinPacket = writeJoinPacket(name, `${spriteId > 3 ? 3 : spriteId}`, LoadTester.encoder)
         socket.send(joinPacket);
         this.sockets.push(socket);
+    }
+
+    async disconnectAll() {
+        const sockets = this.sockets as WebSocket[];
+        console.log(`Disconnecting ${sockets.length} players...`);
+        for (const ws of sockets) {
+            ws.close();
+            await setTimeout(100)
+        }
+        console.log('All players disconnected!');
     }
 
     getStats() {
@@ -121,6 +131,7 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 200);
+const tester = new LoadTester('ws://localhost:7878/', 800);
 
-tester.connectAll()
+tester.connectAll();
+process.on('SIGINT',  tester.disconnectAll.bind(tester));
