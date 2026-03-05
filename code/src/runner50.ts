@@ -83,10 +83,12 @@ class LoadTester {
         const sockets = this.sockets as WebSocket[];
         console.log(`Disconnecting ${sockets.length} players...`);
         for (const ws of sockets) {
+            if (ws.readyState === ws.CLOSED) continue;
             ws.close();
-            await setTimeout(100)
+            await setTimeout(10)
         }
         console.log('All players disconnected!');
+        process.exit();
     }
 
     getStats() {
