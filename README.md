@@ -32,9 +32,10 @@ Branches:
 
 
 ### ideas + thoughs on improvments
-[ ] Broad phase collision
-[ ] HOL blocking mitagation with 
-[ ] Login + password auth
-[ ] Gate server for networking and serialization
-[ ] Skip late ticks
-[ ] Delta compression on updates + other bandwidth shortag
+
+- [ ] Broad phase collision
+- [ ] HOL blocking mitagation with 
+- [ ] Login + password auth
+- [ ] Gate server for networking and serialization
+- [ ] Skip late ticks
+- [ ] Delta compression on updates + other bandwidth shortag
