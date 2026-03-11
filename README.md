@@ -29,3 +29,12 @@ Branches:
 * Render: [Kaplay](https://kaplayjs.com/)
 * Assets : 
     [Kaplay/Crew](https://kaplayjs.com/crew/) & [Poof](https://opengameart.org/content/poof-effect-spritesheet) by [jellyfizh](https://opengameart.org/users/jellyfizh)
+
+
+### ideas + thoughs on improvments
+[ ] Broad phase collision
+[ ] HOL blocking mitagation with 
+[ ] Login + password auth
+[ ] Gate server for networking and serialization
+[ ] Skip late ticks
+[ ] Delta compression on updates + other bandwidth shortag
