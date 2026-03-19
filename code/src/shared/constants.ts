@@ -1,16 +1,4 @@
-const CONSTANTS = {
-    MSG_TYPES: {
-        GAME_UPDATE: 'udpate',
-        GAME_OVER: 'dead',
-        INPUT: 'input',
-        JOIN_GAME: 'join_game',
-        CHAT_MESSAGE: 'chat_message',
-        NOTIFY_JOIN: 'notify_join',
-        NOTIFY_LEFT: 'notify_left',
-        NOTIFY_EVENT: 'notify_event', 
-        TOP_SCORES: 'top_scores',
-    }, // remove after socket.io drop finish
-    
+const CONSTANTS = {    
     TICK_RATE: 1000 / 40,
 
     NOTIFY_CHANNEL: 'general',
@@ -49,7 +37,6 @@ const CONSTANTS = {
         PLAYERS: 8000,
         HAZARDS: 10_000
     },
-
 
     PLAYER_SPRITES: ['bean', 'mark', 'ghosty', 'zombean'],
     /**

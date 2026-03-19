@@ -1,7 +1,7 @@
 import CONSTANTS, { EVENTS } from "../shared/constants.js";
 import { Player } from "./entities/player.js";
 import { Bullet } from "./entities/bullet.js";
-import { applyCollisions } from "./collisions.js";
+import { applyCollisions, Grid, twoPhaseCollisions } from "./collisions.js";
 import { Hazard } from "./entities/hazard.js";
 import { BufferPool, BulletPool, distanceToSq, getRandomCoords, getRandomCoordsCenter, idRegistry, ScoreMap } from "./utils.js";
 import { createWebHazzard } from "./entities/hazards/web.js";
@@ -37,7 +37,7 @@ export class Game {
     private db: DbRunner;
     private boundUpdate:() => void;
     private updateBuffers: BufferPool;
-
+    private collisionGrid : Grid;
 
     constructor(app: uws.TemplatedApp) {
         this.sockets = {};
@@ -52,7 +52,9 @@ export class Game {
         this.db = getRunner();
         this.boundUpdate = this.update.bind(this);
         this.app = app;
-        this.updateBuffers = new BufferPool(4096 * 2);
+        this.updateBuffers = new BufferPool(4096 * 3);
+        this.collisionGrid = new Grid(90);
+
 
         this.boundUpdate();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
@@ -112,6 +114,7 @@ export class Game {
         const dt = (now - this.lastUpdateTime) / 1000;
         this.lastUpdateTime = now;
 
+
         const bulletsToRemove:Bullet[] = [];
         this.bullets.forEach(bullet => {
             if (bullet.update(dt)) {
@@ -132,12 +135,18 @@ export class Game {
             }
         })
 
+        // const destroyedBullets: Bullet[] = applyCollisions(
+        //     Object.values(this.players),
+        //     this.bullets,
+        //     this.hazards
+        // );
 
-        const destroyedBullets: Bullet[] = applyCollisions(
+        const destroyedBullets = twoPhaseCollisions(
             Object.values(this.players),
             this.bullets,
-            this.hazards
-        );
+            this.hazards,
+            this.collisionGrid
+        )
 
         destroyedBullets.forEach(b => {
             const player = this.players[b.parentID]
