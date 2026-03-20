@@ -2,7 +2,7 @@ import { setTimeout } from "node:timers/promises";
 import { performance } from "node:perf_hooks";
 import CONSTANTS from "./shared/constants.js";
 import { WebSocket } from "node:http";
-import { writeInputPacket, writeJoinPacket } from "./shared/messages.js";
+import { writeInputPacket, writeJoinPacket, getPacketType, MSG_TYPES } from "./shared/messages.js";
 
 type Stats = {
     connected: number;
@@ -48,6 +48,7 @@ class LoadTester {
 
     async connectPlayer() {
         const socket = new WebSocket(this.url);
+        socket.binaryType = 'arraybuffer';
         await new Promise<void>(resolve => 
             socket.onopen = () => {
                 this.stats.connected++
@@ -56,14 +57,19 @@ class LoadTester {
 
         let lastUpdate = performance.now();
 
-        socket.onmessage = () => {
-            const now = performance.now()
-            const ping = now - lastUpdate - CONSTANTS.TICK_RATE * 2; // updates sent every other tick
-            lastUpdate = now;
-            if (ping > this.stats.maxLatency) {
-                this.stats.maxLatency = ping
+        socket.onmessage = ({ data }) => {
+            if (!(data instanceof ArrayBuffer)) return;
+
+            const type = getPacketType(data)
+            if (type === MSG_TYPES.GAME_UPDATE) {
+                const now = performance.now()
+                const ping = now - lastUpdate - CONSTANTS.TICK_RATE * 2; // updates sent every other tick
+                lastUpdate = now;
+                if (ping > this.stats.maxLatency) {
+                    this.stats.maxLatency = ping
+                }
+                this.stats.latency.push(ping)
             }
-            this.stats.latency.push(ping)
         };
 
         socket.onerror = (err) => {

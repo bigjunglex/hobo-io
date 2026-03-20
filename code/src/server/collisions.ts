@@ -122,8 +122,6 @@ export function twoPhaseCollisions(
         playerCollisionResolve(p, nearBy)
     }
 
-    console.log('\n [AVERAGE NEARBY]: %d \n\n [HITS]: %d', average / count, count)
-
     return destroyedBullets;
 }
 
@@ -178,11 +176,12 @@ function playerCollisionResolve(p: Player, entities: Set<Entity>) {
 /**
  *  unoptimized hash grid for circles
  *  TODO: what can be pooled? reuse strings? get rid of string keys? set pool?
+ *  
  */
 export class Grid {
     private grid: Map< string, Set<Entity> >;
     private cellsize: number;
-
+    
     constructor(cellsize: number) {
         this.grid = new Map<string, Set<Entity>>;
         this.cellsize = cellsize;
@@ -232,6 +231,6 @@ export class Grid {
     }
 
     public clear() {
-        this.grid.clear()
+        this.grid.clear();
     }
 }

@@ -170,10 +170,11 @@ export class Game {
 
         if (this.shouldSendUpdate) {
             const state = this.serializeState();
+            const c = Object.keys(this.players).length;
             Object.keys(this.sockets).forEach(id => {
                     const socket = this.sockets[id];
                     const player = this.players[id];
-                    const update = this.createUpdate(player, state);
+                    const update = this.createUpdate(player, state, c);
                     const buf = this.updateBuffers.getBuf();
                     const packet = writeUpdatePacket(update, buf);
                     
@@ -202,7 +203,7 @@ export class Game {
         }
     }
 
-    createUpdate(player: Player, state: GlobalState): GameState {
+    createUpdate(player: Player, state: GlobalState, c: number): GameState {
         const me = state.players.find(p => p.id === player.id)!;
         const score = this.players[me.id].score;
         const radius = 900 ** 2
@@ -226,7 +227,7 @@ export class Game {
             bullets: nearbyBullets,
             hazards: nearbyHazzards,
             leaderboard: state.leaderboard,
-            c: Object.keys(this.players).length,
+            c,
             score: Math.round(score)
         }
     }
