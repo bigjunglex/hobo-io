@@ -173,17 +173,15 @@ function playerCollisionResolve(p: Player, entities: Set<Entity>) {
 }
 
 
-/**
- *  unoptimized hash grid for circles
- *  TODO: what can be pooled? reuse strings? get rid of string keys? set pool?
- *  
- */
+
 export class Grid {
     private grid: Map< string, Set<Entity> >;
     private cellsize: number;
+    private nearByMemo: Map<string, Set<Entity>>;
     
     constructor(cellsize: number) {
         this.grid = new Map<string, Set<Entity>>;
+        this.nearByMemo = new Map<string, Set<Entity>>;
         this.cellsize = cellsize;
     }
 
@@ -215,9 +213,21 @@ export class Grid {
         }
     }
 
+    /**
+     * will be needed for update func
+     */
+    public remove(e: Entity) {
+        this.grid.forEach(set => set.delete(e));
+    }
+
     public getNearBy(x: number, y: number, r: number): Set<Entity> {
-        const out = new Set<Entity>();
         const keys = this.getKeys(x, y, r);
+        const memoKey = keys.join('.');
+        if (this.nearByMemo.has(memoKey)) {
+            return this.nearByMemo.get(memoKey)!
+        }
+
+        const out = new Set<Entity>();
         for (const k of keys) {
             const set = this.grid.get(k);
             if ( set ) {
@@ -226,11 +236,12 @@ export class Grid {
                 }
             }
         }
-
+        this.nearByMemo.set(memoKey, out);
         return out;
     }
 
     public clear() {
         this.grid.clear();
+        this.nearByMemo.clear();
     }
 }

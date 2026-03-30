@@ -19,10 +19,11 @@ type EffectApplicator = (p: Player) => void;
 type HazardTransformer = (hazards: Hazard[]) => void;
 
 export class Game {
-    private static registry = new idRegistry(CONSTANTS.MAX_ID); 
+    public static registry = new idRegistry(CONSTANTS.MAX_ID); 
     private static scoreMap = new ScoreMap();
     public static encoder = new TextEncoder();
     public static decoder = new TextDecoder();
+    private static serializedMap = new Map<number, SerializedEntity>;
 
     private sockets: Record<string, uws.WebSocket<Socket>>;
     private players: Record<string, Player>;
@@ -38,6 +39,7 @@ export class Game {
     private boundUpdate:() => void;
     private updateBuffers: BufferPool;
     private collisionGrid : Grid;
+    private AoIGrid: Grid;
 
     constructor(app: uws.TemplatedApp) {
         this.sockets = {};
@@ -45,7 +47,7 @@ export class Game {
         this.bullets = [];
         this.hazards = this.generateHazards();
         this.lastUpdateTime = performance.now();
-        this.shouldSendUpdate = false;
+        this.shouldSendUpdate = true;
         this.bulletPool = new BulletPool();
         this.effectApplicator = null;
         this.currentEvent = EVENTS.Null;
@@ -54,7 +56,7 @@ export class Game {
         this.app = app;
         this.updateBuffers = new BufferPool(4096 * 3);
         this.collisionGrid = new Grid(90);
-
+        this.AoIGrid = new Grid(700);
 
         this.boundUpdate();
         setInterval(this.useRngEffect.bind(this), 1000 * 20);
@@ -169,12 +171,19 @@ export class Game {
         })
 
         if (this.shouldSendUpdate) {
-            const state = this.serializeState();
+            Game.serializedMap.clear();
+            this.AoIGrid.clear()
+            // const state = this.serializeState();
+            this.bullets.forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
+            this.hazards.forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
+            Object.values(this.players).forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
+            
             const c = Object.keys(this.players).length;
+            const leaderboard = this.getLeaderboard();
             Object.keys(this.sockets).forEach(id => {
                     const socket = this.sockets[id];
                     const player = this.players[id];
-                    const update = this.createUpdate(player, state, c);
+                    const update = this.createUpdate(player, leaderboard, c, now);
                     const buf = this.updateBuffers.getBuf();
                     const packet = writeUpdatePacket(update, buf);
                     
@@ -183,6 +192,7 @@ export class Game {
             })
             this.shouldSendUpdate = false;
         } else {
+            this.AoIGrid.clear();
             this.shouldSendUpdate = true;
         }
 
@@ -203,33 +213,74 @@ export class Game {
         }
     }
 
-    createUpdate(player: Player, state: GlobalState, c: number): GameState {
-        const me = state.players.find(p => p.id === player.id)!;
-        const score = this.players[me.id].score;
-        const radius = 900 ** 2
-        const nearbyPlayers = state.players.filter(
-            p => p.id !== me.id &&
-            distanceToSq(p.x, p.y, me.x, me.y) <=  radius// CONSTANTS.MAP_SIZE_SQ / 5
-        );
+    createUpdate(player: Player, leaderboard: Score[], c: number, t: number): GameState {
+        // const me = state.players.find(p => p.id === player.id)!;
+        // const score = this.players[me.id].score;
+        const cache = Game.serializedMap;
+        // const nearbyPlayers = state.players.filter(
+        //     p => p.id !== me.id &&
+        //     distanceToSq(p.x, p.y, me.x, me.y) <=  radius// CONSTANTS.MAP_SIZE_SQ / 5
+        // );
 
-        const nearbyBullets = state.bullets.filter(
-            b => distanceToSq(b.x, b.y, me.x, me.y) <= radius //CONSTANTS.MAP_SIZE_SQ / 5
-        )
+        // const nearbyBullets = state.bullets.filter(
+        //     b => distanceToSq(b.x, b.y, me.x, me.y) <= radius //CONSTANTS.MAP_SIZE_SQ / 5
+        // )
 
-        const nearbyHazzards = state.hazards.filter(
-            h => distanceToSq(h.x, h.y, me.x, me.y) <= radius// CONSTANTS.MAP_SIZE_SQ / 5
-        )
-
-        return {
-            t: performance.now(),
-            me: me,
-            others: nearbyPlayers,
-            bullets: nearbyBullets,
-            hazards: nearbyHazzards,
-            leaderboard: state.leaderboard,
-            c,
-            score: Math.round(score)
+        // const nearbyHazzards = state.hazards.filter(
+        //     h => distanceToSq(h.x, h.y, me.x, me.y) <= radius// CONSTANTS.MAP_SIZE_SQ / 5
+        // )
+        const score = Math.round(this.players[player.id].score);
+        let me;
+        if (cache.has(player.id)) {
+            me = cache.get(player.id)
+        } else { 
+            me = player.serializeForUpdate();
+            cache.set(player.id, me);
         }
+
+        const update: GameState = {
+            t,
+            me: me as Player,
+            others: [],
+            bullets: [],
+            hazards: [],
+            leaderboard,
+            c,
+            score,
+        }
+
+        const entities = this.AoIGrid.getNearBy(player.x, player.y, CONSTANTS.AOI_RADIUS);
+        for (const e of entities) {
+            if (player.distanceToSq(e) > CONSTANTS.SQR_AOI_RAD) continue;
+
+            let entry;
+            if (cache.has(e.id)) {
+                entry = cache.get(e.id);
+            } else {
+                entry = e.serializeForUpdate();
+                cache.set(e.id, entry);
+            }
+
+            if (e instanceof Player) {
+                if (e.id === player.id) continue;
+                update.others.push(entry as Player);
+            }
+            if (e instanceof Bullet) update.bullets.push(entry as SerializedEntity);
+            if (e instanceof Hazard) update.hazards.push(entry as SerializedHazard)
+        }
+
+
+        return update
+        // return {
+        //     t: performance.now(),
+        //     me: me,
+        //     others: nearbyPlayers,
+        //     bullets: nearbyBullets,
+        //     hazards: nearbyHazzards,
+        //     leaderboard: state.leaderboard,
+        //     c,
+        //     score: Math.round(score)
+        // }
     }
 
 

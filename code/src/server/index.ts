@@ -8,19 +8,17 @@ import expressify from "uwebsockets-express";
 import { Game } from './game.js'
 import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writePlayersIDMapPacket, writeScoresPacket } from "../shared/messages.js";
 import CONSTANTS from "../shared/constants.js";
-import { idRegistry } from "./utils.js";
 
 
 const PORT = 7878;
 const uWSapp = uws.App();
-const idReg = new idRegistry(CONSTANTS.MAX_ID);
 const game = new Game(uWSapp);
 
 uWSapp.ws<Socket>('/*', {
     closeOnBackpressureLimit: true,
     upgrade: (res, req, ctx) => {
         res.upgrade(
-            { id: idReg.getId() },
+            { id: Game.registry.getId() },
             req.getHeader('sec-websocket-key'),
             req.getHeader('sec-websocket-protocol'),
             req.getHeader('sec-websocket-extensions'),
@@ -64,7 +62,7 @@ uWSapp.ws<Socket>('/*', {
     close: (ws, code) => {
         game.removePlayer(ws);
         const id = ws.getUserData().id
-        idReg.release(id);
+        Game.registry.release(id);
         console.error('[DISCONNECT]:', id, ' --- with code ', code);
     }
 });

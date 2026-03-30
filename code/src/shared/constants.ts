@@ -6,6 +6,9 @@ const CONSTANTS = {
     MAP_SIZE:3000,
     MAP_SIZE_SQ: 3000 ** 2,
 
+    AOI_RADIUS: 900,
+    SQR_AOI_RAD: 900 ** 2,
+
     PLAYER_RADIUS: 25,
     PLAYER_MAX_HP: 1000,
     PLAYER_SPEED: 400,
