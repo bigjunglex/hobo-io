@@ -19,7 +19,7 @@ type HazardFactory = typeof createFlameHazzard;
 export function slowdownEvent(): [EffectApplicator, EffectApplicator, number] {
     const t = CONSTANTS.EVENTS_DURATION.PLAYERS;
     const applicator: EffectApplicator = (p) => {
-        if (p.effectTimeout) clearTimeout(p.effectTimeout);
+        if (p.isUnderEffect()) p.clearEffectTimeout();
         p.speed = CONSTANTS.PLAYER_SPEED / 4;
         p.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN * 4;
     }

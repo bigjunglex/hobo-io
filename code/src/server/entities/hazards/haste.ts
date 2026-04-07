@@ -20,7 +20,7 @@ function hasteEffect(this:Hazard, player: Player) {
         player.effect = EFFECTS.Null;
     }, CONSTANTS.HAZARD_BOOST_DURATION)
 
-    player.effectTimeout = effectTimeout;
+    player.setEffectTimeout(effectTimeout);
 
     setTimeout(() => {
         this.onCooldown = false;

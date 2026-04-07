@@ -139,7 +139,7 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 600);
+const tester = new LoadTester('ws://localhost:7878/', 100);
 
 tester.connectAll();
 process.on('SIGINT',  tester.disconnectAll.bind(tester));

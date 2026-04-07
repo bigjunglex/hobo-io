@@ -9,7 +9,7 @@ export class Player extends Entity {
     public sprite: number;
     public fireRate: number;
     public effect: number;
-    public effectTimeout: NodeJS.Timeout|null;
+    private _effectTimeout: NodeJS.Timeout|null;
 
     constructor(id: number, username: string, x: number, y: number, sprite: string) {
         super(
@@ -27,7 +27,7 @@ export class Player extends Entity {
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         this.effect = EFFECTS.Null;
-        this.effectTimeout = null;
+        this._effectTimeout = null;
     }
 
     update(dt: number): true|null {
@@ -54,10 +54,18 @@ export class Player extends Entity {
     }
 
     clearEffectTimeout() {
-        if (this.effectTimeout) {
-            clearTimeout(this.effectTimeout)
-            this.effectTimeout = null
+        if (this._effectTimeout) {
+            clearTimeout(this._effectTimeout)
+            this._effectTimeout = null
         }
+    }
+
+    setEffectTimeout(timeout: NodeJS.Timeout) {
+        this._effectTimeout = timeout
+    }
+
+    isUnderEffect() {
+        return Boolean(this._effectTimeout) 
     }
 
     serializeForUpdate(): SerializedPlayer {
@@ -77,7 +85,7 @@ export class Player extends Entity {
         this.score = 0;
         this.fireRate = CONSTANTS.PLAYER_FIRE_COOLDOWN;
         this.effect = EFFECTS.Null;
-        this.effectTimeout = null;
+        this._effectTimeout = null;
 
         this.x = x;
         this.y = y;

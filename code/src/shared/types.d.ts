@@ -119,3 +119,14 @@ interface Socket {
 }
 
 type DbInsertMessage = { score: number, name: string };
+
+type DecodedEntry= {
+    dataEntity: [ number, number, Entity[] ][],
+    t: number,
+    c: number,
+    leaderboard: Score[]
+};
+
+type AoiWorkerData = { ids: number[], bufIn: SharedArrayBuffer, bufOut: SharedArrayBuffer };
+type AoiWorkerReturn = { [k: number]: ArrayBuffer };
+type AoiWorkerResolve = (data: AoiWorkerReturn) => void;
