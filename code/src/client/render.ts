@@ -62,6 +62,11 @@ k.scene('arena', () => {
                 setTimeout(() => shakeOnCD = false, 3000);
             }
 
+            if (prevHP < me.hp) {
+                const healed = me.hp - prevHP;
+                drawHealNumbers(me, healed);
+            }
+
             prevHP = me.hp;
 
             if ((state.score - prevScore) > CONSTANTS.SCORE_BULLET_HIT / 2) {
@@ -72,6 +77,7 @@ k.scene('arena', () => {
                 drawHitMark(me);
             }
 
+        
             prevScore = state.score;
 
             effects = updateEffects(state, effects);
@@ -326,6 +332,25 @@ function drawHitMark(me: Player) {
     ])
 
     hitMark.wait(1.5, () => hitMark.destroy())
+}
+
+function drawHealNumbers(me: Player, healed: number) {
+    const healMark = k.add([
+        k.pos(me.x, me.y),
+        k.timer(),
+        k.outline(1, k.WHITE, 0.8),
+        k.color(k.GREEN),
+        k.text(`+${healed}`, {
+            font: 'happy',
+            align: 'center',
+            letterSpacing: 8,
+            transform: (i, ch) => ({
+                pos: k.vec2(0, k.wave(-8, 8, k.time() * 5 * i * 0.5)),
+            })
+        })
+    ])
+
+    healMark.wait(1.5, () => healMark.destroy())
 }
 
 export function drawEventNotification(event: number) {
