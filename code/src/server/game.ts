@@ -13,10 +13,11 @@ import { fireFormationEvent, mushroomMadnessEvent, portalProphecyEvent, shieldSl
 import { DbRunner } from "./database/db-runner.js";
 import { getRunner } from "./database/connect.js";
 import * as uws from "uWebSockets.js"
-import { writeChatMessagePacket, writeEventPacket, writeJoinPacket, writeNotifyPacket, writeUpdatePacket } from "../shared/messages.js";
-import { Entity } from "./entities/entity.js";
+import { UINT16_SIZE, writeChatMessagePacket, writeEventPacket, writeJoinPacket, writeNotifyPacket, writeUpdatePacket } from "../shared/messages.js";
 import path from "node:path";
 import { AOIWorkerPool } from "./workers/worker-pool.js";
+import os from "node:os";
+import { stat } from "node:fs";
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
@@ -42,7 +43,7 @@ export class Game {
     private boundUpdate:() => void;
     private updateBuffers: BufferPool;
     private collisionGrid : Grid;
-    private AoIGrid: Grid;
+    // private AoIGrid: Grid;
     private AoIPool: AOIWorkerPool;
 
 
@@ -61,7 +62,7 @@ export class Game {
         this.app = app;
         this.updateBuffers = new BufferPool(4096 * 3);
         this.collisionGrid = new Grid(90);
-        this.AoIGrid = new Grid(700);
+        // this.AoIGrid = new Grid(700);
         this.AoIPool = this.initAOIpool();
 
         this.boundUpdate();
@@ -181,15 +182,14 @@ export class Game {
 
             if (c) {
                 Game.serializedMap.clear();
-                this.AoIGrid.clear()
+                // this.AoIGrid.clear()
                 // const state = this.serializeState();
-                this.bullets.forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
-                this.hazards.forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
-                Object.values(this.players).forEach(e => this.AoIGrid.insert(e, CONSTANTS.BULLET_RADIUS));
-
+                const ids = Object.keys(this.players);
                 const leaderboard = this.getLeaderboard();
-                const buf = this.serializeState(now, c, leaderboard)
-                this.AoIPool.createUpdates(Object.keys(this.players).map(x => +x), buf)
+                const state = this.serializeState(now, c, leaderboard);
+                this.AoIPool.updateStateBuf(state);
+                this.AoIPool.createUpdates(ids);
+                // this.AoIPool.createUpdates(Object.keys(this.players).map(x => +x), buf)
 
                 // OLD ITERATION
                 // Object.keys(this.sockets).forEach(id => {
@@ -205,7 +205,7 @@ export class Game {
                 this.shouldSendUpdate = false;
             }
         } else {
-            this.AoIGrid.clear();
+            // this.AoIGrid.clear();
             this.shouldSendUpdate = true;
         }
         
@@ -213,45 +213,51 @@ export class Game {
     }
 
     // pre theads + AOIgrid implementation
-    // serializeState(): GlobalState {
-    //     const players = Object.values(this.players).map(p => p.serializeForUpdate());
-    //     const bullets = this.bullets.map(b => b.serializeForUpdate());
-    //     const hazards = this.hazards.map(h => h.serializeForUpdate());
+    serializeState(t: number, playerCount: number, leaderboard: Score[]): GlobalState & { c:number } {
+        const players = Object.values(this.players).map(p => p.serializeForUpdate());
+        const bullets = this.bullets.map(b => b.serializeForUpdate());
+        const hazards = this.hazards.map(h => h.serializeForUpdate());
 
-    //     return {
-    //         t: performance.now(),
-    //         players,
-    //         bullets,
-    //         hazards,
-    //         leaderboard: this.getLeaderboard(),
-    //     }
-    // }
 
-    serializeState(t: number, c: number, leaderboard: Score[]): Uint8Array<ArrayBufferLike> {
-        const dataEntity: [number, number, Entity[]][] = [];
-        for (const p of Object.values(this.players)) {
-            const id = p.id
-            const score = Math.round(p.score);
-            const set = [...this.AoIGrid.getNearBy(p.x, p.y, CONSTANTS.AOI_RADIUS)];
-            dataEntity.push([id, score, set])
-        }
 
-        const data: DecodedEntry = {
+        return {
             t,
-            c,
+            players,
+            bullets,
+            hazards,
             leaderboard,
-            dataEntity
+            c: playerCount
         }
 
-        const encodedEntity = Game.encoder.encode(JSON.stringify(data, (key, value) => {
-            if (key.includes('Timeout')) {
-                return undefined
-            }
-            return value
-        }));
-
-        return encodedEntity
     }
+
+    // serializeState(t: number, c: number, leaderboard: Score[]): Uint8Array<ArrayBufferLike> {
+        // const dataEntity: [number, number, Entity[]][] = [];
+        // for (const p of Object.values(this.players)) {
+        //     const id = p.id
+        //     const score = Math.round(p.score);
+        //     const set = [...this.AoIGrid.getNearBy(p.x, p.y, CONSTANTS.AOI_RADIUS)];
+        //     dataEntity.push([id, score, set])
+        // }
+
+        // const data: DecodedEntry = {
+        //     t,
+        //     c,
+        //     leaderboard,
+        //     dataEntity
+        // }
+
+        // const encodedEntity = Game.encoder.encode(JSON.stringify(data, (key, value) => {
+        //     if (key.includes('Timeout')) {
+        //         return undefined
+        //     }
+        //     return value
+        // }));
+
+        // return encodedEntity
+
+
+    // }
 
     // createUpdate(player: Player, leaderboard: Score[], c: number, t: number): GameState {
         // const me = state.players.find(p => p.id === player.id)!;
@@ -440,17 +446,42 @@ export class Game {
         }
     }
 
+    /**
+     * inits AOI pool with send callback resolver
+     */
     private initAOIpool() {
-        const resolve = (data: AoiWorkerReturn) => {
-            for (const entry of Object.entries(data)) {
-                const [id, packet] = entry;
-                const socket = this.sockets[+id];
-                if (socket) {
-                    socket.send(packet, true)
+        const size = 1
+        const resolver = (packets: SharedArrayBuffer) => {
+            const STEP = 1024 * 1024;
+            const view = new DataView(packets);
+
+            let offset = 0;
+            let readRegions = 0;
+
+            while (size > readRegions) {   
+                const nPackets = view.getUint16(offset, true);
+                offset += UINT16_SIZE;            
+                
+                let readPackets = 0;
+                
+                while (nPackets > readPackets) {
+                    const id = view.getUint16(offset, true);
+                    offset += UINT16_SIZE;
+                    const packetLen = view.getUint16(offset, true);
+                    offset += UINT16_SIZE;
+                    const packetView = new Uint8Array(packets, offset, packetLen);
+                    offset += packetLen - UINT16_SIZE;
+                    readPackets++;
+                    
+                    this.sockets[id.toString()].send(packetView, true);
                 }
+
+                readRegions++;
+                offset = readRegions * STEP;
             }
         }
-
-        return new AOIWorkerPool(path.resolve('./dist/server/workers/AOI-worker.js'), resolve)
+            
+            
+        return new AOIWorkerPool(path.resolve('./dist/server/workers/AOI-worker.js'), resolver, size)
     }
 }

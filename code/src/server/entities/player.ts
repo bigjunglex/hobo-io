@@ -76,6 +76,7 @@ export class Player extends Entity {
             direction: this.direction,
             hp: this.hp,
             effect: this.effect,
+            score: this.score,
         }
     }
 

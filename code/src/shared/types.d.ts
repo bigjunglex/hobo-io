@@ -31,18 +31,19 @@ type Score = {
 }
 
 type SerializedHazard = {
-    id: number;
-    sprite: number;
+    sprite: number;    
     onCooldown: boolean;
-} & Position;
+} & SerializedEntity;
 
 /**
  * c = player count
  */
 type GameState = {
     t: number;
-    me: Player;
-    others: Player[];
+    // FIX START
+    me: SerializedPlayer;
+    others: SerializedPlayer[];
+    // FIX END
     bullets: SerializedEntity[];
     hazards: SerializedHazard[];
     leaderboard: Score[];
@@ -58,6 +59,8 @@ type EffectEntry = {
 
 type SerializedEntity = {
     id: number;
+    length?: number;
+    offset?: number;
 } & Position;
 
 type SerializedPlayer = SerializedEntity & {
@@ -65,7 +68,11 @@ type SerializedPlayer = SerializedEntity & {
     sprite: number;
     effect: number;
     direction: number;
-    hp: number
+    hp: number;
+    /**
+     * metadata for SharedArrayBuffer extraction
+     */
+    score?: number;
 }
 
 type GlobalState = Pick<GameState, 'bullets' | 'hazards' | 'leaderboard' | 't'> & { players: SerializedPlayer[] };
@@ -127,6 +134,4 @@ type DecodedEntry= {
     leaderboard: Score[]
 };
 
-type AoiWorkerData = { ids: number[], bufIn: SharedArrayBuffer, bufOut: SharedArrayBuffer };
-type AoiWorkerReturn = { [k: number]: ArrayBuffer };
-type AoiWorkerResolve = (data: AoiWorkerReturn) => void;
+type AoiWorkerResolve = (target: SharedArrayBuffer) => void;

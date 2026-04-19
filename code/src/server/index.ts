@@ -9,13 +9,14 @@ import { Game } from './game.js'
 import { getPacketType, MSG_TYPES, readInputPacket, readJoinPacket, readMessagePacket, writePlayersIDMapPacket, writeScoresPacket } from "../shared/messages.js";
 import CONSTANTS from "../shared/constants.js";
 
+try {
+    
 
 const PORT = 7878;
 const uWSapp = uws.App();
 const game = new Game(uWSapp);
 
 uWSapp.ws<Socket>('/*', {
-    closeOnBackpressureLimit: true,
     upgrade: (res, req, ctx) => {
         res.upgrade(
             { id: Game.registry.getId() },
@@ -80,3 +81,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.listen(PORT, () => console.log(`[SERVER]: Listening on `, PORT))
+} catch (error) {
+  console.log(error)   
+}

@@ -1,3 +1,5 @@
+import { Entity } from "../server/entities/entity";
+
 export enum MSG_TYPES {
     GAME_UPDATE,
     INPUT,
@@ -259,7 +261,7 @@ export function writeUpdatePacket(gs: GameState, buf: ArrayBuffer): ArrayBuffer 
         offset = insertBullet(view, offset, b)
     }
 
-    // [ COUNT ] [ ...[LENGTH][BULLET] ]
+    // [ COUNT ] [ ...[LENGTH][HAZARD] ]
     //  ^
     view.setUint8(offset++, gs.hazards.length);
     for (const h of gs.hazards) {
@@ -347,7 +349,7 @@ export function readUpdatePacket(packet: ArrayBuffer): GameState {
  * inserts @SerializedPlayer into buffer by provided views
  */
 function insertPlayer(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number,
     p: SerializedPlayer
 ): number {
@@ -381,7 +383,7 @@ function insertPlayer(
  * inserts @SerializedEntity into buffer by provided views
  */
 function insertBullet(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number,
     b: SerializedEntity
 ): number {
@@ -410,7 +412,7 @@ function insertBullet(
  * ^
  */
 function insertHazard(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number,
     h: SerializedHazard
 ): number {
@@ -444,7 +446,7 @@ function insertHazard(
  * ^
  */
 function insertBoardEntry(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number,
     s: Score
 ): number {
@@ -460,7 +462,7 @@ function insertBoardEntry(
 }
 
 function extractPlayer(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number
 ): [SerializedPlayer, number] {
     const playerBytes = view.getUint8(offset++);
@@ -499,7 +501,7 @@ function extractPlayer(
 }
 
 function extractBullet(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number
 ): [SerializedEntity, number] {
     const bulletBytes = view.getUint8(offset++);
@@ -518,7 +520,7 @@ function extractBullet(
 }
 
 function extractHazard(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number
 ): [SerializedHazard, number] {
     const hazardBytes = view.getUint8(offset++);
@@ -547,7 +549,7 @@ function extractHazard(
 }
 
 function extractBoardEntry(
-    view: DataView<ArrayBuffer>,
+    view: DataView<ArrayBuffer> | DataView<SharedArrayBuffer>,
     offset: number
 ): [Score, number] {
     const id = view.getUint16(offset, true);
@@ -577,4 +579,193 @@ export function readPlayersIDMapPacket(packet: ArrayBuffer, decoder: TextDecoder
     const view = new Uint8Array(packet);
     const json = decoder.decode(view.subarray(1));
     return JSON.parse(json)
+}
+
+
+/**
+ * variation of write update packet for serializing state for SAB for workers
+ */
+export function writeGlobalState( gs: GlobalState & { c: number }, buf: SharedArrayBuffer ): void {
+    const view = new DataView(buf);
+    
+    let offset = 0;
+    view.setFloat64(offset, gs.t, true);
+    offset += FLOAT64_SIZE;
+    view.setUint16(offset, gs.c, true);
+    offset += UINT16_SIZE;
+
+    // [ COUNT ] [ ...[LENGTH][PLAYER] ]
+    //  ^
+    view.setUint8(offset++, gs.players.length);
+    for (const p of gs.players) {
+        offset = insertPlayer(view, offset, p);
+        view.setUint16(offset, p.score ?? 0, true);
+        offset += UINT16_SIZE;
+    }
+
+    // [ COUNT ] [ ...[LENGTH][BULLET] ]
+    //  ^
+    view.setUint8(offset++, gs.bullets.length);
+    for (const b of gs.bullets) {
+        offset = insertBullet(view, offset, b)
+    }
+
+    // [ COUNT ] [ ...[LENGTH][BULLET] ]
+    //  ^
+    view.setUint8(offset++, gs.hazards.length);
+    for (const h of gs.hazards) {
+        offset = insertHazard(view, offset, h);
+    }
+
+    // [COUNT][... LEADERBOARD ENTRY]
+    view.setUint8(offset++, gs.leaderboard.length);
+    for (const s of gs.leaderboard) {
+        offset = insertBoardEntry(view, offset, s);
+    }
+
+    view.setUint16(offset, gs.c, true);
+    offset += UINT16_SIZE;
+
+}
+
+/**
+ * @param buf SAB serialzed state
+ */
+export function readGlobalState(buf: SharedArrayBuffer): GlobalState & { c: number } {
+    const view = new DataView(buf);
+
+    let offset = 0;
+    const t = view.getFloat64(offset, true);
+    offset += FLOAT64_SIZE;
+    const c = view.getUint16(offset, true);
+    offset += UINT16_SIZE;
+
+    const players = [];
+    let playersCount = view.getUint8(offset++);
+    while (playersCount > 0) {
+        const [ p, newOffset ] = extractPlayer(view, offset);
+        p.offset = offset;
+        p.length = newOffset - offset;
+        offset = newOffset;
+        // score is not in the length bc it will not be copied into GAME_UPDATE packet 
+        p.score = view.getUint16(offset, true);
+        offset += UINT16_SIZE;
+
+        players.push(p);
+        --playersCount;
+    };
+
+    const bullets: SerializedEntity[] = [];
+    let bulletsCount = view.getUint8(offset++);
+    while (bulletsCount > 0) {
+        const [b, newOffset] = extractBullet(view, offset);
+        b.offset = offset;
+        b.length = newOffset - offset;
+        offset = newOffset;
+        
+        bullets.push(b);
+        --bulletsCount;
+    };
+    
+    const hazards: SerializedHazard[] = [];
+    let hazardsCount = view.getUint8(offset++);
+    while (hazardsCount > 0) {
+        const [h, newOffset] = extractHazard(view, offset);
+        h.offset = offset;
+        h.length = newOffset - offset;
+        offset = newOffset;
+
+        hazards.push(h);
+        --hazardsCount;
+    };
+    
+    const leaderboard: Score[] = [];
+    let scoresCount = view.getUint8(offset++);
+    while (scoresCount > 0) {
+        const [s, newOffset] = extractBoardEntry(view, offset);
+        leaderboard.push(s);
+        --scoresCount;
+        offset = newOffset;
+    };
+    
+    return {
+        t,
+        players,
+        bullets,
+        hazards,
+        leaderboard,
+        c,
+    }   
+}
+
+/**
+ * writes packetLength at start
+ */
+export function writeUpdatePacketToSab(
+    gs: GameState,
+    viewGs: DataView<SharedArrayBuffer>,
+    viewPacket: DataView<SharedArrayBuffer>,
+    offset: number
+): number {
+    /**
+     * saving start for length mark
+     */
+    const start = offset;
+    const uaGs = new Uint8Array(viewGs.buffer);
+    const uaPackets = new Uint8Array(viewPacket.buffer);
+    
+    offset += UINT16_SIZE;
+    
+    // packetstart
+    viewPacket.setUint8(offset++, MSG_TYPES.GAME_UPDATE);
+    viewPacket.setFloat64(offset, gs.t, true);
+    offset += FLOAT64_SIZE;
+
+    viewPacket.setUint8(offset++, gs.others.length + 1);
+    offset = copyEntity<SerializedPlayer>(uaGs, uaPackets, gs.me, offset);
+    for (const p of gs.others) {
+        offset = copyEntity<SerializedPlayer>(uaGs, uaPackets, p, offset)
+    }
+
+    viewPacket.setUint8(offset++, gs.bullets.length)
+    for (const b of gs.bullets) {
+        offset = copyEntity<SerializedEntity>(uaGs, uaPackets, b, offset)
+    }
+
+    viewPacket.setUint8(offset++, gs.hazards.length)
+    for (const h of gs.hazards) {
+        offset = copyEntity<SerializedHazard>(uaGs, uaPackets, h, offset)
+    }
+
+    viewPacket.setUint8(offset++, gs.leaderboard.length)
+    for (const s of gs.leaderboard) {
+        offset = insertBoardEntry(viewPacket, offset, s);
+    }
+
+    viewPacket.setUint16(offset, gs.c, true);
+    offset += UINT16_SIZE;
+    viewPacket.setUint16(offset, gs.score, true);
+    offset += UINT16_SIZE;
+
+    const bytes = offset - start;
+    viewPacket.setUint16(start, bytes, true);
+
+    return offset
+}
+
+
+function copyEntity<T extends SerializedEntity>(
+    from:Uint8Array,
+    to:Uint8Array,
+    e: T,
+    offset: number
+): number {
+    if (!e.length || !e.offset) {
+        console.log(`${e.id}, has no metadata `)
+        return offset
+    }
+    
+    const src = from.slice(e.offset, e.offset + e.length);
+    to.set(src, offset);
+    return offset + e.length 
 }
