@@ -16,6 +16,7 @@ Heavily inspired by [Victor Zhou](https://victorzhou.com/blog/) blog post about 
 Branches:
 - main - working with binary messages without socket.io, to reduce bandwidth;
 - JSON - json messging through [Socket.io](https://socket.io/) + [msgpack](https://msgpack.org/);
+- current [ WIP ] - aoi-threads - moving AOI managment and packet creation to workerthreads, since its the main CPU heavy bottleneck on high (600+ players) loads 
 
 ### Test:
 ``` npm run test50```
@@ -33,9 +34,10 @@ Branches:
 
 ### ideas + thoughs on improvments
 
-- [ ] Broad phase collision
-- [ ] HOL blocking mitagation with 
-- [ ] Login + password auth
-- [ ] Gate server for networking and serialization
-- [ ] Skip late ticks
+- [X] Broad phase collision
+- [ ] websocket HOL blocking (on packet drop) mitagation with backup connection pool
+- [ ] Some sort of auth
+- [ ] Gate server for networking and serialization, mb add room manager?
+- [X] Skip late ticks - turns out its bad idea to skip late simulation frames
 - [ ] Delta compression on updates + other bandwidth shortag
+- [ ] worker threads server side for Area of Interest managment
