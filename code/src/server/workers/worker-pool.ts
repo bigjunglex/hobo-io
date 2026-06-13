@@ -16,8 +16,8 @@ export class AOIWorkerPool {
     constructor( file: string, resolve: AoiWorkerResolve, size: number ) {
         this.workers = [];
         this.resolve = resolve;
-        this.stateBuf = new SharedArrayBuffer(1024 * 1024);
-        this.packetsBuf = new SharedArrayBuffer(1024 * 1024 * 10);
+        this.stateBuf = new SharedArrayBuffer(1024 * 1024 * 64);
+        this.packetsBuf = new SharedArrayBuffer(1024 * 1024 * 64);
         this.wReady = 0;
 
         for (let i = 0; i < size; i++) {
@@ -25,7 +25,7 @@ export class AOIWorkerPool {
                 workerData: [
                     this.stateBuf,
                     this.packetsBuf,
-                    i * 1024 * 1024
+                    i * 1024 * 1024 * 22
                 ] 
             });
             w.on('message', () => this.resolveWorkers());
@@ -35,7 +35,7 @@ export class AOIWorkerPool {
         }
     }
     
-    private batchUpdates(ids: string[]) {
+    private batchUpdates(ids: string[]): number[][] {
         const wLen = this.workers.length
         const batches: number[][] = [];
 
@@ -51,7 +51,7 @@ export class AOIWorkerPool {
         return batches
     }
 
-    public createUpdates(ids: string[]) {
+    public createUpdates(ids: string[]): void {
         const batches = this.batchUpdates(ids);
         this.workers.forEach((w, i) => w.postMessage({ ids: batches[i] }));
     }

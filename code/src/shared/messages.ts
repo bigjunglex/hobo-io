@@ -625,7 +625,6 @@ export function writeGlobalState( gs: GlobalState & { c: number }, buf: SharedAr
 
     view.setUint16(offset, gs.c, true);
     offset += UINT16_SIZE;
-
 }
 
 /**
@@ -714,6 +713,7 @@ export function writeUpdatePacketToSab(
     const uaGs = new Uint8Array(viewGs.buffer);
     const uaPackets = new Uint8Array(viewPacket.buffer);
     
+
     offset += UINT16_SIZE;
     
     // packetstart

@@ -6,3 +6,4 @@ code/*.db*
 
 # for now local tests ignored
 code/src/*.test.ts
+code/src/tests

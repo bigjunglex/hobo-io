@@ -16,8 +16,6 @@ import * as uws from "uWebSockets.js"
 import { UINT16_SIZE, writeChatMessagePacket, writeEventPacket, writeJoinPacket, writeNotifyPacket, writeUpdatePacket } from "../shared/messages.js";
 import path from "node:path";
 import { AOIWorkerPool } from "./workers/worker-pool.js";
-import os from "node:os";
-import { stat } from "node:fs";
 
 type EffectApplicator = (p: Player) => void; 
 type HazardTransformer = (hazards: Hazard[]) => void;
@@ -450,9 +448,9 @@ export class Game {
      * inits AOI pool with send callback resolver
      */
     private initAOIpool() {
-        const size = 1
+        const size = 1;
         const resolver = (packets: SharedArrayBuffer) => {
-            const STEP = 1024 * 1024;
+            const STEP = 1024 * 1024 * 10;
             const view = new DataView(packets);
 
             let offset = 0;
@@ -472,16 +470,20 @@ export class Game {
                     const packetView = new Uint8Array(packets, offset, packetLen);
                     offset += packetLen - UINT16_SIZE;
                     readPackets++;
-                    
-                    this.sockets[id.toString()].send(packetView, true);
-                }
 
+                    console.assert(offset < STEP, '10MB ends on [%d] packets', nPackets)
+                    console.assert(packetView.byteLength, '[id]: %d / [len]: %d / [offset]: %d', id, packetLen, offset)                            
+                    
+                    if (this.sockets[id.toString()] && packetView.byteLength) {
+                        this.sockets[id.toString()].send(packetView, true);
+                    }
+                }
+                
                 readRegions++;
                 offset = readRegions * STEP;
             }
         }
-            
-            
+
         return new AOIWorkerPool(path.resolve('./dist/server/workers/AOI-worker.js'), resolver, size)
     }
 }

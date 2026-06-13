@@ -60,16 +60,21 @@ class LoadTester {
         socket.onmessage = ({ data }) => {
             if (!(data instanceof ArrayBuffer)) return;
 
-            const type = getPacketType(data)
-            if (type === MSG_TYPES.GAME_UPDATE) {
-                const now = performance.now()
-                const ping = now - lastUpdate - CONSTANTS.TICK_RATE * 2; // updates sent every other tick
-                lastUpdate = now;
-                if (ping > this.stats.maxLatency) {
-                    this.stats.maxLatency = ping
+            try {
+                const type = getPacketType(data)
+                if (type === MSG_TYPES.GAME_UPDATE) {
+                    const now = performance.now()
+                    const ping = now - lastUpdate - CONSTANTS.TICK_RATE * 2; // updates sent every other tick
+                    lastUpdate = now;
+                    if (ping > this.stats.maxLatency) {
+                        this.stats.maxLatency = ping
+                    }
+                    this.stats.latency.push(ping)
                 }
-                this.stats.latency.push(ping)
+            } catch (e) {
+                console.error(e)
             }
+
         };
 
         socket.onerror = (err) => {
@@ -139,7 +144,7 @@ class LoadTester {
     }
 }
 
-const tester = new LoadTester('ws://localhost:7878/', 100);
+const tester = new LoadTester('ws://localhost:7878/', 800);
 
 tester.connectAll();
 process.on('SIGINT',  tester.disconnectAll.bind(tester));

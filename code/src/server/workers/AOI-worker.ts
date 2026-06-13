@@ -24,7 +24,8 @@ parentPort!.on('message', ({ ids }: MessageData) => {
     offset += UINT16_SIZE;
 
     for (const id of ids) {
-        const state:GameState = getAOI(gs, id);
+        const state:GameState|undefined = getAOI(gs, id);
+        if (!state) { continue }
         vPackets.setUint16(offset, id, true);
         offset += UINT16_SIZE;
         const newOffset = writeUpdatePacketToSab(state, vGs, vPackets, offset); 
@@ -46,8 +47,11 @@ function distanceToSq<T extends SerializedEntity>(from: T, to: T) {
 /**
  * < < < BRUTEFORCE AREA OF INTEREST :SMORK: :SMORK: > > > 
  */
-function getAOI(gs: GlobalState & { c: number }, id: number): GameState {
-    const me = gs.players.find(p => p.id === id)!;
+function getAOI(gs: GlobalState & { c: number }, id: number): GameState|undefined {
+    const me = gs.players.find(p => p.id === id);
+    if (!me) {
+        return undefined
+    }
     const score = me.score ?? 0;
     const nearbyPlayers = gs.players.filter(
         p => p.id !== me.id && 
